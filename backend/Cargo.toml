@@ -7,3 +7,7 @@ edition = "2024"
 anyhow = "1.0.104"
 lettre = "0.11.23"
 dotenvy = "0.15.7"
+axum = "0.8.9"
+rustls = "0.23.43"
+serde = { version = "1.0.229", features = ["derive"] }
+tokio = { version = "1.53.1", features = ["full"] }
