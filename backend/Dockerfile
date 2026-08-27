@@ -2,6 +2,7 @@ FROM rust:1.90-slim-trixie AS build
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY . .
+RUN apt-get update && apt-get install -y pkg-config libssl-dev
 RUN cargo build --release
 
 FROM debian:trixie-slim AS runtime
