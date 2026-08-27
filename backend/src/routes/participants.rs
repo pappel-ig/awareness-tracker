@@ -7,6 +7,7 @@ use serde_json::{json, Value};
 use std::sync::Arc;
 use tokio_postgres::Client;
 use uuid::Uuid;
+use crate::Config;
 use crate::mail::EmailTemplateService;
 
 pub fn router() -> Router {
@@ -22,6 +23,7 @@ pub struct NewParticipantRequest {
 async fn new_participant(
     Extension(db): Extension<Arc<Client>>,
     Extension(email): Extension<EmailTemplateService>,
+    Extension(config): Extension<Config>,
     Json(body): Json<NewParticipantRequest>,
 ) -> Result<Json<Value>, StatusCode> {
     if body.email.trim().is_empty() {
@@ -31,6 +33,7 @@ async fn new_participant(
     let uuid = Uuid::new_v4();
     let mut values = HashMap::new();
     values.insert("id", uuid.to_string());
+    values.insert("bind", config.bind_addr);
     email.send_template(
         "templates/invite.html",
         "Umfrage Security Awareness",

@@ -19,6 +19,11 @@ use tower::Service;
 use crate::mail::EmailTemplateService;
 use crate::routes::router;
 
+#[derive(Clone)]
+pub struct Config {
+    pub bind_addr: String
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv().ok();
@@ -40,6 +45,7 @@ async fn main() -> Result<()> {
     );
     let listener = TcpListener::bind(&bind_addr).await?;
     let app = router()
+        .layer(Extension(Config {bind_addr}))
         .layer(Extension(db))
         .layer(Extension(email_template_service));
 
