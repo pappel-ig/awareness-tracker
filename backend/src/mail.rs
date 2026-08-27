@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
 use anyhow::{Context, Result};
 use lettre::{Message, SmtpTransport, Transport};
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
+
+const INVITE_TEMPLATE: &str = include_str!("../templates/invite.html");
 
 #[derive(Clone)]
 pub struct EmailTemplateService {
@@ -16,10 +17,12 @@ pub struct EmailTemplateService {
 impl EmailTemplateService {
 
     pub fn send_template(&self, template: &str, subject: &str, name: &str, to_mail: &str, vals: HashMap<&str, String>) -> Result<(), Box<dyn Error>> {
-        let template = fs::read_to_string("templates/invite.html")
-            .with_context(|| format!("Template {} konnte nicht gelesen werden", template))?;
+        let contents = match template {
+            "templates/invite.html" => INVITE_TEMPLATE,
+            other => return Err(format!("Unbekanntes Template: {other}").into()),
+        };
 
-        Self::send_mail(self, template, subject, name, to_mail, vals).expect("Failed to send template");
+        Self::send_mail(self, contents.to_string(), subject, name, to_mail, vals).expect("Failed to send template");
         Ok(())
     }
 
