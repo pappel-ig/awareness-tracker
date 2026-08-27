@@ -26,8 +26,11 @@ pub fn router() -> Router {
         .route("/tracker/mail/{id}", get(tracker_pixel))
 }
 
-async fn tracker_pixel(Path(_id): Path<Uuid>) -> impl IntoResponse {
-    println!("TEST INFO");
+async fn tracker_pixel(
+    Extension(ConnectInfo(remote_addr)): Extension<ConnectInfo<SocketAddr>>,
+    Path(_id): Path<Uuid>
+) -> impl IntoResponse {
+    println!("Tracker Click from {}", remote_addr);
     ([(header::CONTENT_TYPE, "image/gif")], Bytes::from_static(PIXEL_GIF))
 }
 

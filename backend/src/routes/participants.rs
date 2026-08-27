@@ -32,6 +32,7 @@ async fn new_participant(
 
     let uuid = Uuid::new_v4();
     let mut values = HashMap::new();
+    println!("{}", uuid.to_string());
     values.insert("id", uuid.to_string());
     values.insert("bind", config.addr);
     email.send_template(
