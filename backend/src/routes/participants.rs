@@ -5,6 +5,7 @@ use axum::{Extension, Json, Router};
 use serde::Deserialize;
 use serde_json::{json, Value};
 use std::sync::Arc;
+use email_address::EmailAddress;
 use tokio_postgres::Client;
 use uuid::Uuid;
 use crate::Config;
@@ -26,7 +27,7 @@ async fn new_participant(
     Extension(config): Extension<Config>,
     Json(body): Json<NewParticipantRequest>,
 ) -> Result<Json<Value>, StatusCode> {
-    if body.email.trim().is_empty() {
+    if body.email.trim().is_empty() || !EmailAddress::is_valid(&body.email) {
         return Err(StatusCode::BAD_REQUEST);
     }
 
@@ -39,13 +40,12 @@ async fn new_participant(
         "templates/invite.html",
         "Umfrage Security Awareness",
         "tbd",
-        "umfrage@jonasmetzger.de",
+        body.email.trim(),
         values,
     ).map_err(|e| {
         println!("Failed to send template: {}", e);
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
-
 
     db.execute(
         "INSERT INTO participants (id, email) VALUES ($1, $2)",
