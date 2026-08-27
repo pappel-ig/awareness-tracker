@@ -5,7 +5,7 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim AS runtime
-RUN adduser -D rustapp
+RUN adduser --disabled-password --gecos "" rustapp
 COPY --from=build --chown=rustapp /app/target/release/backend /usr/local/bin/app
 USER rustapp
 ENTRYPOINT ["/usr/local/bin/app"]
