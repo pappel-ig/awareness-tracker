@@ -33,7 +33,7 @@ async fn new_participant(
     let uuid = Uuid::new_v4();
     let mut values = HashMap::new();
     values.insert("id", uuid.to_string());
-    values.insert("bind", config.bind_addr);
+    values.insert("bind", config.addr);
     email.send_template(
         "templates/invite.html",
         "Umfrage Security Awareness",

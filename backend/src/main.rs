@@ -21,7 +21,7 @@ use crate::routes::router;
 
 #[derive(Clone)]
 pub struct Config {
-    pub bind_addr: String
+    pub addr: String
 }
 
 #[tokio::main]
@@ -32,6 +32,7 @@ async fn main() -> Result<()> {
         .map_err(|_| anyhow::anyhow!("Crypto-Provider konnte nicht installiert werden"))?;
 
     let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8443".to_string());
+    let addr = env::var("ADDR").unwrap_or_else(|_| "localhost:8443".to_string());
     let database_url = env::var("DATABASE_URL")?;
     let server_config = Arc::new(tls::load_server_config()?);
     let db = Arc::new(db::connect(&database_url).await?);
@@ -45,7 +46,7 @@ async fn main() -> Result<()> {
     );
     let listener = TcpListener::bind(&bind_addr).await?;
     let app = router()
-        .layer(Extension(Config {bind_addr}))
+        .layer(Extension(Config {addr}))
         .layer(Extension(db))
         .layer(Extension(email_template_service));
 
