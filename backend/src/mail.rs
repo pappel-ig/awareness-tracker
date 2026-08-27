@@ -44,7 +44,6 @@ impl EmailTemplateService {
     }
 
     fn send_mail(&self, template: String, subject: &str, name: &str, to_mail: &str, vals: HashMap<&str, String>) -> Result<(), Box<dyn Error>> {
-
         let email = Message::builder()
             .from(format!("{} <{}>", self.from_name, self.from_email).parse()?)
             .to(format!("{} <{}>", name, to_mail).parse()?)

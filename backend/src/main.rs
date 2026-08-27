@@ -1,50 +1,61 @@
+mod db;
 mod mail;
+mod routes;
+mod tls;
 
-use std::collections::HashMap;
 use std::env;
+use std::sync::Arc;
 
-use crate::mail::EmailTemplateService;
-use anyhow::{Context, Result};
+use anyhow::Result;
+use axum::body::Body;
+use axum::extract::ConnectInfo;
+use axum::Extension;
 use dotenvy::dotenv;
-use lettre::Transport;
+use hyper_util::rt::{TokioExecutor, TokioIo};
+use hyper_util::server::conn::auto::Builder;
+use hyper_util::service::TowerToHyperService;
+use tokio::net::TcpListener;
+use tower::Service;
 
-fn env_var(key: &str) -> Result<String> {
-    env::var(key).with_context(|| format!("Umgebungsvariable {key} fehlt (siehe .env)"))
-}
-
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     dotenv().ok();
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .map_err(|_| anyhow::anyhow!("Crypto-Provider konnte nicht installiert werden"))?;
 
-    let smtp_server = env_var("SMTP_SERVER")?;
-    let smtp_port: u16 = env_var("SMTP_PORT")?
-        .parse()
-        .context("SMTP_PORT ist keine gueltige Zahl")?;
-    let smtp_username = env_var("SMTP_USERNAME")?;
-    let smtp_password = env_var("SMTP_PASSWORD")?;
+    let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8443".to_string());
+    let database_url = env::var("DATABASE_URL")?;
+    let server_config = Arc::new(tls::load_server_config()?);
+    let db = Arc::new(db::connect(&database_url).await?);
+    let listener = TcpListener::bind(&bind_addr).await?;
+    let app = routes::router().layer(Extension(db));
 
-    let from_name = env_var("FROM_NAME")?;
-    let from_email = env_var("FROM_EMAIL")?;
-    let to_name = env_var("TO_NAME")?;
+    loop {
+        let Ok((tcp_stream, peer_addr)) = listener.accept().await else {
+            continue;
+        };
+        let server_config = server_config.clone();
+        let app = app.clone();
 
-    let mut vars = HashMap::new();
-    vars.insert("name", to_name.clone());
-    vars.insert("from_name", from_name.clone());
+        tokio::spawn(async move {
+            let Ok((tls_stream, hello_info)) = tls::accept_tls(tcp_stream, server_config).await
+            else {
+                return;
+            };
 
-    let mail_service = EmailTemplateService::new(
-        smtp_server,
-        smtp_port,
-        smtp_username,
-        smtp_password,
-        from_name,
-        from_email
-    );
+            let mut app = app
+                .layer(Extension(Arc::new(hello_info)))
+                .layer(Extension(ConnectInfo(peer_addr)));
+            let hyper_service = TowerToHyperService::new(tower::service_fn(
+                move |request: hyper::Request<hyper::body::Incoming>| {
+                    app.call(request.map(Body::new))
+                },
+            ));
 
-    mail_service.send_template("templates/email.html",
-                               "Test Email",
-                               "Test Benutzer",
-                               "example@example.org", vars)
-        .expect("Failed to send template");
-
-
-    Ok(())
+            let _ = Builder::new(TokioExecutor::new())
+                .serve_connection(TokioIo::new(tls_stream), hyper_service)
+                .await;
+        });
+    }
 }
