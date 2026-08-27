@@ -6,7 +6,7 @@ mod tls;
 use std::env;
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use axum::body::Body;
 use axum::extract::ConnectInfo;
 use axum::Extension;
@@ -16,6 +16,8 @@ use hyper_util::server::conn::auto::Builder;
 use hyper_util::service::TowerToHyperService;
 use tokio::net::TcpListener;
 use tower::Service;
+use crate::mail::EmailTemplateService;
+use crate::routes::router;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -28,8 +30,18 @@ async fn main() -> Result<()> {
     let database_url = env::var("DATABASE_URL")?;
     let server_config = Arc::new(tls::load_server_config()?);
     let db = Arc::new(db::connect(&database_url).await?);
+    let email_template_service = EmailTemplateService::new(
+        env::var("SMTP_SERVER")?,
+        env::var("SMTP_PORT")?.parse().context("SMTP_PORT invalid value")?,
+        env::var("SMTP_USERNAME")?,
+        env::var("SMTP_PASSWORD")?,
+        env::var("SMTP_NAME")?,
+        env::var("SMTP_FROM")?
+    );
     let listener = TcpListener::bind(&bind_addr).await?;
-    let app = routes::router().layer(Extension(db));
+    let app = router()
+        .layer(Extension(db))
+        .layer(Extension(email_template_service));
 
     loop {
         let Ok((tcp_stream, peer_addr)) = listener.accept().await else {

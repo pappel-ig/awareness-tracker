@@ -6,6 +6,7 @@ use lettre::{Message, SmtpTransport, Transport};
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 
+#[derive(Clone)]
 pub struct EmailTemplateService {
     mailer: SmtpTransport,
     from_name: String,
@@ -15,7 +16,7 @@ pub struct EmailTemplateService {
 impl EmailTemplateService {
 
     pub fn send_template(&self, template: &str, subject: &str, name: &str, to_mail: &str, vals: HashMap<&str, String>) -> Result<(), Box<dyn Error>> {
-        let template = fs::read_to_string("templates/email.html")
+        let template = fs::read_to_string("templates/invite.html")
             .with_context(|| format!("Template {} konnte nicht gelesen werden", template))?;
 
         Self::send_mail(self, template, subject, name, to_mail, vals).expect("Failed to send template");

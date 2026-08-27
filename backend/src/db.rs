@@ -9,15 +9,26 @@ pub async fn connect(database_url: &str) -> Result<Client> {
 
     client
         .batch_execute(
-            "CREATE TABLE IF NOT EXISTS tracks (
-                id UUID PRIMARY KEY,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-                method TEXT NOT NULL,
-                uri TEXT NOT NULL,
-                remote_addr TEXT NOT NULL,
-                tls JSONB NOT NULL,
-                headers JSONB NOT NULL
-            )",
+            "
+                DROP TABLE IF EXISTS tracks;
+                DROP TABLE IF EXISTS participants;
+
+                CREATE TABLE IF NOT EXISTS tracks (
+                    id UUID PRIMARY KEY,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                    method TEXT NOT NULL,
+                    uri TEXT NOT NULL,
+                    remote_addr TEXT NOT NULL,
+                    tls JSONB NOT NULL,
+                    headers JSONB NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS participants (
+                    id UUID PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    registered_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                );
+            "
         )
         .await?;
 
