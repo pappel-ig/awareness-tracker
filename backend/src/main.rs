@@ -16,6 +16,7 @@ use hyper_util::server::conn::auto::Builder;
 use hyper_util::service::TowerToHyperService;
 use tokio::net::TcpListener;
 use tower::Service;
+use log::info;
 use crate::mail::EmailTemplateService;
 use crate::routes::router;
 
@@ -44,11 +45,27 @@ async fn main() -> Result<()> {
         env::var("SMTP_NAME")?,
         env::var("SMTP_FROM")?
     );
+
+    info!("Start Backend on {}", bind_addr);
+
     let listener = TcpListener::bind(&bind_addr).await?;
     let app = router()
         .layer(Extension(Config {addr}))
         .layer(Extension(db))
         .layer(Extension(email_template_service));
+
+    tokio::spawn(async {
+        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler");
+        tokio::select! {
+            _ = sigterm.recv() => {},
+            _ = tokio::signal::ctrl_c() => {},
+        }
+        info!("Stopping Backend");
+        std::process::exit(0);
+    });
+
+    info!("Started Backend on {}", bind_addr);
 
     loop {
         let Ok((tcp_stream, peer_addr)) = listener.accept().await else {

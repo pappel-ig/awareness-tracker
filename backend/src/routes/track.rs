@@ -2,13 +2,12 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use axum::Router;
 use axum::body::Bytes;
 use axum::extract::{ConnectInfo, Extension, Path};
-use axum::http::{header, HeaderMap, Method, StatusCode, Uri};
-use axum::response::{IntoResponse, Json};
+use axum::http::{HeaderMap, Method, StatusCode, Uri, header};
+use axum::response::IntoResponse;
 use axum::routing::get;
-use axum::Router;
-use serde_json::{json, Value};
 use tokio_postgres::Client;
 use uuid::Uuid;
 
@@ -22,27 +21,19 @@ const PIXEL_GIF: &[u8] = &[
 
 pub fn router() -> Router {
     Router::new()
-        .route("/track/{id}", get(track))
         .route("/tracker/mail/{id}", get(tracker_pixel))
 }
 
 async fn tracker_pixel(
-    Extension(ConnectInfo(remote_addr)): Extension<ConnectInfo<SocketAddr>>,
-    Path(_id): Path<Uuid>
-) -> impl IntoResponse {
-    println!("Tracker Click from {}", remote_addr);
-    ([(header::CONTENT_TYPE, "image/gif")], Bytes::from_static(PIXEL_GIF))
-}
+        Path(id): Path<Uuid>,
+        method: Method,
+        uri: Uri,
+        headers: HeaderMap,
+        Extension(tls_info): Extension<Arc<ClientHelloInfo>>,
+        Extension(ConnectInfo(remote_addr)): Extension<ConnectInfo<SocketAddr>>,
+        Extension(db): Extension<Arc<Client>>,
+) -> Result<impl IntoResponse, StatusCode> {
 
-async fn track(
-    Path(id): Path<Uuid>,
-    method: Method,
-    uri: Uri,
-    headers: HeaderMap,
-    Extension(tls_info): Extension<Arc<ClientHelloInfo>>,
-    Extension(ConnectInfo(remote_addr)): Extension<ConnectInfo<SocketAddr>>,
-    Extension(db): Extension<Arc<Client>>,
-) -> Result<Json<Value>, StatusCode> {
     let headers: BTreeMap<String, String> = headers
         .iter()
         .map(|(name, value)| {
@@ -65,10 +56,5 @@ async fn track(
     ).await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(json!({
-        "id": id,
-        "remote_addr": remote_addr,
-        "tls": tls,
-        "headers": headers,
-    })))
+    Ok(([(header::CONTENT_TYPE, "image/gif")], Bytes::from_static(PIXEL_GIF)))
 }
