@@ -44,7 +44,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=short
       - name: Build and push Backend Docker image
-        id: build-and-push
+        id: build-and-push-backend
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: backend
@@ -55,7 +55,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build and push Frontend Docker image
-        id: build-and-push
+        id: build-and-push-frontend
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: frontend
