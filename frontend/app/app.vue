@@ -5,7 +5,7 @@
     <NuxtRouteAnnouncer />
     <UApp>
       <UContainer class="max-w-3xl mt-12">
-        <SurveyStart/>
+        <SurveyGroup/>
       </UContainer>
     </UApp>
   </div>
