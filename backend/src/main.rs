@@ -10,13 +10,17 @@ use anyhow::{Context, Result};
 use axum::body::Body;
 use axum::extract::ConnectInfo;
 use axum::Extension;
+use axum::http::Method;
 use dotenvy::dotenv;
+use hyper::header::ACCESS_CONTROL_ALLOW_METHODS;
+use hyper::http::HeaderValue;
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server::conn::auto::Builder;
 use hyper_util::service::TowerToHyperService;
 use tokio::net::TcpListener;
 use tower::Service;
 use log::info;
+use tower_http::cors::{Any, CorsLayer};
 use crate::mail::EmailTemplateService;
 use crate::routes::router;
 
@@ -27,6 +31,9 @@ pub struct Config {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stdout)
+        .init();
     dotenv().ok();
     rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
@@ -34,22 +41,29 @@ async fn main() -> Result<()> {
 
     let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8443".to_string());
     let addr = env::var("ADDR").unwrap_or_else(|_| "localhost:8443".to_string());
-    let database_url = env::var("DATABASE_URL")?;
+    let cors = env::var("CORS").unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://tracker:tracker@127.0.0.1:5432/tracker".to_string());
     let server_config = Arc::new(tls::load_server_config()?);
     let db = Arc::new(db::connect(&database_url).await?);
     let email_template_service = EmailTemplateService::new(
-        env::var("SMTP_SERVER")?,
-        env::var("SMTP_PORT")?.parse().context("SMTP_PORT invalid value")?,
-        env::var("SMTP_USERNAME")?,
-        env::var("SMTP_PASSWORD")?,
-        env::var("SMTP_NAME")?,
-        env::var("SMTP_FROM")?
+        env::var("SMTP_SERVER").unwrap_or_else(|_| "smtp.example.org".to_string()),
+        env::var("SMTP_PORT").unwrap_or_else(|_| "587".to_string()).parse::<u16>().context("SMTP_PORT invalid value")?,
+        env::var("SMTP_USERNAME").unwrap_or_else(|_| "mock_user".to_string()),
+        env::var("SMTP_PASSWORD").unwrap_or_else(|_| "mock_pass".to_string()),
+        env::var("SMTP_NAME").unwrap_or_else(|_| "Example".to_string()),
+        env::var("SMTP_FROM").unwrap_or_else(|_| "mail@example.org".to_string())
     );
 
     info!("Start Backend on {}", bind_addr);
 
+    let cors = CorsLayer::new()
+        .allow_origin(cors.parse::<HeaderValue>()?)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     let listener = TcpListener::bind(&bind_addr).await?;
     let app = router()
+        .layer(cors)
         .layer(Extension(Config {addr}))
         .layer(Extension(db))
         .layer(Extension(email_template_service));

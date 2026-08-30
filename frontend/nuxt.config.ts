@@ -7,6 +7,18 @@ export default defineNuxtConfig({
   modules: [
       '@nuxt/ui'
   ],
+  runtimeConfig: {
+    public: {
+      apiBase: 'https://localhost:8443/', // fallback if /env.js has no API_BASE set at container runtime
+    },
+  },
+  app: {
+    head: {
+      script: [
+        { src: '/env.js' }
+      ]
+    }
+  },
   colorMode: {
     preference: 'light',
     fallback: 'light',

@@ -16,8 +16,20 @@ const state = reactive({
   emailDataLeakCheckOk: false
 })
 
+const apiBase = useApiBase()
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log(event)
+  const result = await $fetch(apiBase + "participants", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: {
+      "email": event.data.email,
+      "leak_check": event.data.emailDataLeakCheckOk
+    }
+  })
+  console.log(result)
 }
 
 </script>

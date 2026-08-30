@@ -26,6 +26,7 @@ pub async fn connect(database_url: &str) -> Result<Client> {
                 CREATE TABLE IF NOT EXISTS participants (
                     id UUID PRIMARY KEY,
                     email TEXT NOT NULL,
+                    leak_check BOOLEAN,
                     registered_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 );
             "
