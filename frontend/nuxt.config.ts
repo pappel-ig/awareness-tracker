@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      apiBase: 'https://localhost:8443/', // fallback if /env.js has no API_BASE set at container runtime
+      apiBase: 'https://localhost:8443/',
     },
   },
   app: {

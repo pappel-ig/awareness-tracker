@@ -1,9 +1,13 @@
 <script setup lang="ts">
+
+const banner = useBanner()
+
 </script>
 <template>
   <div>
     <UApp>
       <UContainer class="max-w-3xl sm:mt-12">
+        <UBanner v-if="banner" :title="banner.title" :color="banner.color" close closeable close-icon="i-lucide-x-circle" @close="banner = null"/>
         <UCard
           class="w-full p-1 sm:p-9 mb-3"
           :ui="{ root: 'ring-0 rounded-none shadow-none sm:ring sm:ring-default sm:rounded-md sm:shadow-sm' }"

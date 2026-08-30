@@ -28,25 +28,8 @@ async fn new_participant(
     }
 
     let uuid = Uuid::new_v4();
-
-    let rows = db.query(
-        "SELECT count(email) > 0 FROM participants WHERE email = $1",
-        &[&body.email]
-    ).await
-        .map_err(|e| {
-            println!("Failed to insert participant: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-
-    let user_exists: bool = rows[0].get(0);
-    if user_exists {
-        return Ok(Json(json!({
-            "status": "email_already_registered"
-        })))
-    }
-
     db.execute(
-        "INSERT INTO participants (id, email, leak_check) VALUES ($1, $2, $3)",
+        "INSERT INTO participants (id, email, leak_check) VALUES ($1, $2, $3) ON CONFLICT (email) DO NOTHING",
         &[&uuid, &body.email, &body.leak_check],
     ).await
         .map_err(|e| {
