@@ -3,7 +3,8 @@ POST https://localhost:8443/participants
 Content-Type: application/json
 
 {
-  "email": "example@example.org"
+  "email": "example@example.org",
+  "leak_check": true
 }
 
 

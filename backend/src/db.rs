@@ -1,3 +1,4 @@
+use std::env;
 use anyhow::Result;
 use tokio_postgres::{Client, NoTls};
 
@@ -7,12 +8,16 @@ pub async fn connect(database_url: &str) -> Result<Client> {
         let _ = connection.await;
     });
 
+    if env::var("DEBUG").is_ok() {
+        client.batch_execute("
+            DROP TABLE IF EXISTS tracks;
+                DROP TABLE IF EXISTS participants;
+        ").await?;
+    }
+
     client
         .batch_execute(
             "
-                DROP TABLE IF EXISTS tracks;
-                DROP TABLE IF EXISTS participants;
-
                 CREATE TABLE IF NOT EXISTS tracks (
                     id UUID PRIMARY KEY,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -27,6 +32,7 @@ pub async fn connect(database_url: &str) -> Result<Client> {
                     id UUID PRIMARY KEY,
                     email TEXT UNIQUE NOT NULL,
                     leak_check BOOLEAN,
+                    leak_breaches JSONB,
                     registered_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 );
             "
