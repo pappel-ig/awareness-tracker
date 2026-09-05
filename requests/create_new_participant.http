@@ -4,7 +4,8 @@ Content-Type: application/json
 
 {
   "email": "example@example.org",
-  "leak_check": true
+  "leak_check": true,
+  "turnstile_token": "dsd"
 }
 
 

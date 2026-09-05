@@ -3,6 +3,7 @@ mod leak_api;
 mod mail;
 mod routes;
 mod tls;
+mod turnstile;
 
 use std::env;
 use std::sync::Arc;
@@ -48,6 +49,7 @@ async fn main() -> Result<()> {
     let db = Arc::new(db::connect(&database_url).await?);
     let leak_client = leak_api::build_client()?;
     tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone()));
+    let turnstile_client = Arc::new(turnstile::TurnstileClient::new()?);
     let email_template_service = EmailTemplateService::new(
         env::var("SMTP_SERVER").unwrap_or_else(|_| "smtp.example.org".to_string()),
         env::var("SMTP_PORT").unwrap_or_else(|_| "587".to_string()).parse::<u16>().context("SMTP_PORT invalid value")?,
@@ -70,6 +72,7 @@ async fn main() -> Result<()> {
         .layer(Extension(Config {addr}))
         .layer(Extension(db))
         .layer(Extension(leak_client))
+        .layer(Extension(turnstile_client))
         .layer(Extension(email_template_service));
 
     tokio::spawn(async {

@@ -10,6 +10,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'https://localhost:8443/',
+      turnstileSiteKey: 'exampleturnstile',
     },
   },
   app: {
