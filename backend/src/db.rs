@@ -8,10 +8,10 @@ pub async fn connect(database_url: &str) -> Result<Client> {
         let _ = connection.await;
     });
 
-    if env::var("DEBUG").is_ok() {
+    if env::var("RECREATE_DB").is_ok() {
         client.batch_execute("
             DROP TABLE IF EXISTS tracks;
-                DROP TABLE IF EXISTS participants;
+            DROP TABLE IF EXISTS participants;
         ").await?;
     }
 
@@ -20,9 +20,10 @@ pub async fn connect(database_url: &str) -> Result<Client> {
             "
                 CREATE TABLE IF NOT EXISTS tracks (
                     id UUID PRIMARY KEY,
+                    participant UUID NOT NULL,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
                     method TEXT NOT NULL,
-                    uri TEXT NOT NULL,
+                    origin TEXT NOT NULL,
                     remote_addr TEXT NOT NULL,
                     tls JSONB NOT NULL,
                     headers JSONB NOT NULL
@@ -31,6 +32,7 @@ pub async fn connect(database_url: &str) -> Result<Client> {
                 CREATE TABLE IF NOT EXISTS participants (
                     id UUID PRIMARY KEY,
                     email TEXT UNIQUE NOT NULL,
+                    token_hash BYTEA UNIQUE NOT NULL,
                     leak_check BOOLEAN,
                     leak_breaches JSONB,
                     registered_at TIMESTAMPTZ NOT NULL DEFAULT now()

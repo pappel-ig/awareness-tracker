@@ -1,3 +1,5 @@
 /backend/.env
 /backend/target
 .idea
+certs
+/.env

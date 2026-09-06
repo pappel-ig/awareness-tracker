@@ -1,3 +1,4 @@
+mod auth;
 mod db;
 mod leak_api;
 mod mail;
@@ -23,12 +24,14 @@ use tokio::net::TcpListener;
 use tower::Service;
 use log::info;
 use tower_http::cors::{Any, CorsLayer};
+use tower_http::set_header::SetResponseHeaderLayer;
 use crate::mail::EmailTemplateService;
 use crate::routes::router;
 
 #[derive(Clone)]
 pub struct Config {
-    pub addr: String
+    pub addr: String,
+    pub frontend_addr: String,
 }
 
 #[tokio::main]
@@ -43,6 +46,7 @@ async fn main() -> Result<()> {
 
     let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8443".to_string());
     let addr = env::var("ADDR").unwrap_or_else(|_| "localhost:8443".to_string());
+    let frontend_addr = env::var("FRONTEND_ADDR").unwrap_or_else(|_| "localhost:3000".to_string());
     let cors = env::var("CORS").unwrap_or_else(|_| "http://localhost:3000".to_string());
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://tracker:tracker@127.0.0.1:5432/tracker".to_string());
     let server_config = Arc::new(tls::load_server_config()?);
@@ -51,12 +55,13 @@ async fn main() -> Result<()> {
     tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone()));
     let turnstile_client = Arc::new(turnstile::TurnstileClient::new()?);
     let email_template_service = EmailTemplateService::new(
-        env::var("SMTP_SERVER").unwrap_or_else(|_| "smtp.example.org".to_string()),
-        env::var("SMTP_PORT").unwrap_or_else(|_| "587".to_string()).parse::<u16>().context("SMTP_PORT invalid value")?,
+        env::var("SMTP_SERVER").unwrap_or_else(|_| "localhost".to_string()),
+        env::var("SMTP_PORT").unwrap_or_else(|_| "1025".to_string()).parse::<u16>().context("SMTP_PORT invalid value")?,
         env::var("SMTP_USERNAME").unwrap_or_else(|_| "mock_user".to_string()),
         env::var("SMTP_PASSWORD").unwrap_or_else(|_| "mock_pass".to_string()),
         env::var("SMTP_NAME").unwrap_or_else(|_| "Example".to_string()),
-        env::var("SMTP_FROM").unwrap_or_else(|_| "mail@example.org".to_string())
+        env::var("SMTP_FROM").unwrap_or_else(|_| "mail@example.org".to_string()),
+        env::var("DEBUG").is_ok()
     );
 
     info!("Start Backend on {}", bind_addr);
@@ -69,7 +74,7 @@ async fn main() -> Result<()> {
     let listener = TcpListener::bind(&bind_addr).await?;
     let app = router()
         .layer(cors)
-        .layer(Extension(Config {addr}))
+        .layer(Extension(Config {addr, frontend_addr}))
         .layer(Extension(db))
         .layer(Extension(leak_client))
         .layer(Extension(turnstile_client))

@@ -1,12 +1,21 @@
 <html lang="de">
   <body>
-    <p>Moin</p>
+    <p>Moin,</p>
     <p>
-      herzlichen Willkommen zur Security Awareness Umfrage. Vielen Dank das du mitmachst!
+      vielen Dank das du bei der Security Awareness Umfrage mitmachst. Diese E-Mail enthält ein Link mit welchem du immer
+      wieder zu der Umfrage kommen kannst. So ist es auch dir auch möglich die Umfrage ggf. auch noch mit einen anderen
+      Gerät durchzuführen. Diese E-Mail solltest du nicht weiterleiten, da sonst die weiterleitende Person Zugriff auf deine
+      Umfragedaten erhält! Am Ende der Umfrage gibt es eine Zusammenfassung, in der du alle erfassten Daten nochmal vor
+      dem Hochladen ansehen kannst.
+
+      <br><br>
+
+      <a href="{{survey}}">Zu deiner personalisierten Umfrage</a>
+
     </p>
     <p>Liebe Grüße<br/>
       Jonas
     </p>
-    <img src="https://{{bind}}/tracker/mail/{{id}}" alt=""/>
+    <img src="https://{{bind}}/mail/tracker?token={{token}}" alt=""/>
   </body>
 </html>

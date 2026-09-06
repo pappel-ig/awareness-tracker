@@ -9,6 +9,25 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - mailpitdata:/data
+      - ./certs/certificate.crt:/certs/certificate.crt
+      - ./certs/private.key:/certs/private.key
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_SMTP_TLS_CERT: /certs/certificate.crt
+      MP_SMTP_TLS_KEY: /certs/private.key
 
 volumes:
   pgdata:
+  mailpitdata:
