@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
-import {SurveyDemographics, SurveyStart} from "#components";
+import SurveyStart from "~/components/survey/pages/SurveyStart.vue";
+import SurveyDemographics from "~/components/survey/pages/SurveyDemographics.vue";
 
 const surveyGroup = [
     SurveyStart,
