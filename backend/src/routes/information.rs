@@ -34,7 +34,6 @@ async fn leak_status(
 
     Ok(Json(json!({
         "leak_check": leak_check.unwrap_or(false),
-        "checked": leak_breaches.is_some(),
         "breaches": leak_breaches.unwrap_or_else(|| json!([])),
     })))
 }

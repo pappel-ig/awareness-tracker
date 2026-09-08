@@ -11,8 +11,7 @@ const token = route.query.token
 
 interface LeakResult {
   breaches: Breach[]
-  checked: boolean,
-  leak_check: true
+  leak_check: boolean
 }
 
 interface Breach {
@@ -76,21 +75,21 @@ const visibleBreaches = computed(() =>
   <p>
     Im Internet existieren Leaks die unter Umständen persönliche Informationen wie Passwörter, Bankdaten oder auch Adressen
     beinhalten.
-    <span v-if="result.checked && result.leak_check">Hier ist ein Teil deiner Informationen, die mit deiner E-Mail verknüpft werden können:</span>
-    <span v-if="!result.checked && result.leak_check">Zu deiner E-Mail Adresse konnten keine bekannten Datenlecks gefunden werden!</span>
+    <span v-if="result.breaches.length > 0 && result.leak_check">Hier ist ein Teil deiner Informationen, die mit deiner E-Mail verknüpft werden können:</span>
+    <span v-if="!(result.breaches.length > 0) && result.leak_check">Zu deiner E-Mail Adresse konnten keine bekannten Datenlecks gefunden werden!</span>
     <span v-if="!result.leak_check">Du hast bei der Anmeldung der Verarbeitung mit HaveIBeenPwned nicht zugestimmt... Du kannst <a href="https://haveibeenpwned.com/">hier</a> deine E-Mail manuell überprüfen!</span>
 
   </p>
 
-  <UTable v-if="result.checked && result.leak_check" :data="visibleBreaches" :columns="columns" :ui="{ base: 'table-fixed w-full' }"></UTable>
+  <UTable v-if="result.breaches.length > 0 && result.leak_check" :data="visibleBreaches" :columns="columns" :ui="{ base: 'table-fixed w-full' }"></UTable>
 
-  <div v-if="result.checked && result.leak_check && result.breaches.length > 3" class="mt-2 flex justify-center">
+  <div v-if="result.breaches.length > 0 && result.leak_check && result.breaches.length > 3" class="mt-2 flex justify-center">
     <UButton color="neutral" variant="outline" @click="showAllBreaches = !showAllBreaches">
       {{ showAllBreaches ? 'Weniger anzeigen' : `Alle ${result.breaches.length} Einträge anzeigen` }}
     </UButton>
   </div>
 
-  <USeparator v-if="result.checked && result.leak_check" class="mt-5" size="sm" type="dashed" />
+  <USeparator v-if="result.breaches.length > 0 && result.leak_check" class="mt-5" size="sm" type="dashed" />
 
   <UFormField class="mt-5">
     <UCheckbox variant="card" label="Wusstest du das solche Informationen im Internet existieren?" orientation="horizontal" v-model="survey.surveyLeakKnowledge"/>
