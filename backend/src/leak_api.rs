@@ -4,8 +4,10 @@ use std::time::Duration;
 use anyhow::anyhow;
 use log::{error, warn};
 use reqwest::{Client, StatusCode};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
+use time::serde::rfc3339;
+use time::{Date, OffsetDateTime};
 use tokio_postgres::Client as DbClient;
 use uuid::Uuid;
 
@@ -15,10 +17,16 @@ const DEFAULT_RATE_LIMIT_WAIT: Duration = Duration::from_secs(10);
 
 const HIBP_API_URL: &str = "https://haveibeenpwned.com/api/v3/breachedaccount";
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct Breach {
     #[serde(rename = "Name")]
     name: String,
+    #[serde(rename = "Domain")]
+    domain: String,
+    #[serde(rename = "DataClasses")]
+    data: Vec<String>,
+    #[serde(rename = "AddedDate",  with = "rfc3339")]
+    ts: OffsetDateTime
 }
 
 enum CheckError {
@@ -44,19 +52,18 @@ pub fn build_client() -> anyhow::Result<Arc<Client>> {
     Ok(Arc::new(client))
 }
 
-async fn check_email(client: &Client, email: &str) -> Result<Vec<String>, CheckError> {
+async fn check_email(client: &Client, email: &str) -> Result<Vec<Breach>, CheckError> {
     let mut url = reqwest::Url::parse(HIBP_API_URL)?;
     url.path_segments_mut()
         .map_err(|_| anyhow!("HIBP_API_URL is not a valid base URL"))?
         .push(email);
-    url.query_pairs_mut().append_pair("truncateResponse", "true");
+    url.query_pairs_mut().append_pair("truncateResponse", "false");
 
     let response = client.get(url).send().await?;
 
     match response.status() {
         StatusCode::OK => {
-            let breaches: Vec<Breach> = response.json().await?;
-            Ok(breaches.into_iter().map(|b| b.name).collect())
+            Ok(response.json().await?)
         }
         StatusCode::NOT_FOUND => Ok(Vec::new()),
         StatusCode::TOO_MANY_REQUESTS => {

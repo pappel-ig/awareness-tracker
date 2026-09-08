@@ -2,11 +2,12 @@
 
 import SurveyStart from "~/components/survey/pages/SurveyStart.vue";
 import SurveyDemographics from "~/components/survey/pages/SurveyDemographics.vue";
+import SurveyLeak from "~/components/survey/pages/SurveyLeak.vue";
 
 const surveyGroup = [
     SurveyStart,
     SurveyDemographics,
-    SurveyDemographics
+    SurveyLeak
 ]
 
 const currentIndex = ref(0);

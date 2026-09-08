@@ -2,6 +2,8 @@ export type SurveyState = {
   age: string
   itKnowledge: number
   securityAwareness: number
+  surveyLeakKnowledge: boolean,
+  surveyLeakScareFactor: number,
 }
 
 export function useSurveyState() {
@@ -9,5 +11,7 @@ export function useSurveyState() {
     age: 'Keine Angabe',
     itKnowledge: 0,
     securityAwareness: 0,
+    surveyLeakKnowledge: false,
+    surveyLeakScareFactor: 0
   }))
 }

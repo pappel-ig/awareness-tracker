@@ -29,3 +29,4 @@ rand = "0.10.2"
 sha2 = "0.11.0"
 base64 = "0.22.1"
 maxminddb = "0.30.3"
+time = { version = "0.3.55", features = ["serde", "parsing", "formatting", "macros"] }
