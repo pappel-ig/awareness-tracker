@@ -5,6 +5,7 @@ mod mail;
 mod routes;
 mod tls;
 mod turnstile;
+mod ip;
 
 use std::env;
 use std::sync::Arc;
@@ -25,6 +26,7 @@ use tower::Service;
 use log::info;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::set_header::SetResponseHeaderLayer;
+use ip::IpInformationService;
 use crate::mail::EmailTemplateService;
 use crate::routes::router;
 
@@ -51,6 +53,7 @@ async fn main() -> Result<()> {
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://tracker:tracker@127.0.0.1:5432/tracker".to_string());
     let server_config = Arc::new(tls::load_server_config()?);
     let db = Arc::new(db::connect(&database_url).await?);
+    let ip_information_client = IpInformationService::new()?;
     let leak_client = leak_api::build_client()?;
     tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone()));
     let turnstile_client = Arc::new(turnstile::TurnstileClient::new()?);
@@ -78,7 +81,8 @@ async fn main() -> Result<()> {
         .layer(Extension(db))
         .layer(Extension(leak_client))
         .layer(Extension(turnstile_client))
-        .layer(Extension(email_template_service));
+        .layer(Extension(email_template_service))
+        .layer(Extension(Arc::new(ip_information_client)));
 
     tokio::spawn(async {
         let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())

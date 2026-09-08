@@ -3,3 +3,5 @@
 .idea
 certs
 /.env
+/backend/GeoLite2-ASN.mmdb
+/backend/GeoLite2-City.mmdb

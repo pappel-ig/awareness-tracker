@@ -31,7 +31,6 @@ pub fn router() -> Router {
     Router::new()
         .route("/browser/tracker", get(tracker_browser).route_layer(from_fn(require_participant)))
         .route("/mail/tracker", get(tracker_pixel).route_layer(from_fn(require_participant)))
-        .route("/leaks", get(leak_status).route_layer(from_fn(require_participant)))
 }
 
 async fn tracker_browser(
@@ -99,25 +98,4 @@ async fn tracker_pixel(
     Ok(([(header::CONTENT_TYPE, "image/gif")], Bytes::from_static(PIXEL_GIF)))
 }
 
-async fn leak_status(
-    Extension(participant): Extension<Participant>,
-    Extension(db): Extension<Arc<Client>>,
-) -> Result<Json<Value>, StatusCode> {
-    let row = db
-        .query_opt(
-            "SELECT leak_check, leak_breaches FROM participants WHERE id = $1",
-            &[&participant.id],
-        )
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
 
-    let leak_check: Option<bool> = row.get("leak_check");
-    let leak_breaches: Option<Value> = row.get("leak_breaches");
-
-    Ok(Json(json!({
-        "leak_check": leak_check.unwrap_or(false),
-        "checked": leak_breaches.is_some(),
-        "breaches": leak_breaches.unwrap_or_else(|| json!([])),
-    })))
-}
