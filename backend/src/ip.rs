@@ -5,13 +5,14 @@ use anyhow::{Context, Result};
 use maxminddb::{geoip2, Reader};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct IpInformation {
     pub city: Option<String>,
     pub country: Option<String>,
     pub country_code: Option<String>,
     pub asn: Option<u32>,
     pub isp: Option<String>,
+    pub ip: IpAddr
 }
 
 pub struct IpInformationService {
@@ -62,6 +63,7 @@ impl IpInformationService {
                 .as_ref()
                 .and_then(|a| a.autonomous_system_organization)
                 .map(str::to_string),
+            ip
         }
     }
 }

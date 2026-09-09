@@ -4,6 +4,8 @@ export type SurveyState = {
   securityAwareness: number
   surveyLeakKnowledge: boolean,
   surveyLeakScareFactor: number,
+  surveyIpKnowledge: boolean,
+  surveyIpScareFactor: number,
 }
 
 export function useSurveyState() {
@@ -12,6 +14,8 @@ export function useSurveyState() {
     itKnowledge: 0,
     securityAwareness: 0,
     surveyLeakKnowledge: false,
-    surveyLeakScareFactor: 0
+    surveyLeakScareFactor: 0,
+    surveyIpKnowledge: false,
+    surveyIpScareFactor: 0,
   }))
 }

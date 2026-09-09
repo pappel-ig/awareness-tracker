@@ -25,8 +25,6 @@ if (!route.query.token) {
   router.replace({ path: '/start' })
 }
 
-const params = new URLSearchParams()
-params.append("token", String(token ?? ""))
 const result = await $fetch<LeakResult>(apiBase + "information/leaks", {
   method: "GET",
   query: {
@@ -89,7 +87,7 @@ const visibleBreaches = computed(() =>
     </UButton>
   </div>
 
-  <USeparator v-if="result.breaches.length > 0 && result.leak_check" class="mt-5" size="sm" type="dashed" />
+  <USeparator v-if="result.breaches.length > 0 && result.leak_check" class="mt-5" type="dashed" />
 
   <UFormField class="mt-5">
     <UCheckbox variant="card" label="Wusstest du das solche Informationen im Internet existieren?" orientation="horizontal" v-model="survey.surveyLeakKnowledge"/>
