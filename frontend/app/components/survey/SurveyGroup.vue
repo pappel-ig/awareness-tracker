@@ -4,12 +4,14 @@ import SurveyStart from "~/components/survey/pages/SurveyStart.vue";
 import SurveyDemographics from "~/components/survey/pages/SurveyDemographics.vue";
 import SurveyLeak from "~/components/survey/pages/SurveyLeak.vue";
 import SurveyIp from "~/components/survey/pages/SurveyIp.vue";
+import SurveyFingerprint from "~/components/survey/pages/SurveyFingerprint.vue";
 
 const surveyGroup = [
     SurveyStart,
     SurveyDemographics,
     SurveyLeak,
-    SurveyIp
+    SurveyIp,
+    SurveyFingerprint
 ]
 
 const currentIndex = ref(0);
