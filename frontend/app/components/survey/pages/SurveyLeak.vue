@@ -89,17 +89,9 @@ const visibleBreaches = computed(() =>
 
   <USeparator v-if="result.breaches.length > 0 && result.leak_check" class="mt-5" type="dashed" />
 
-  <UFormField class="mt-5">
-    <UCheckbox variant="card" label="Wusstest du das solche Informationen im Internet existieren?" orientation="horizontal" v-model="survey.surveyLeakKnowledge"/>
-  </UFormField>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das solche Informationen im Internet existieren?" v-model="survey.surveyLeakKnowledge"/>
 
-  <UFormField class="mt-5" required label="Wie stark beunruhigen dich diese Daten?" description="">
-    <div class="flex items-center gap-3 mt-5">
-      <span class="text-xs text-stone-500 whitespace-nowrap">Niedrig</span>
-      <USlider v-model="survey.surveyLeakScareFactor" />
-      <span class="text-xs text-stone-500 whitespace-nowrap">Hoch</span>
-    </div>
-  </UFormField>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.surveyLeakScareFactor"/>
 </template>
 
 <style scoped>

@@ -36,17 +36,9 @@ const { data: result } = await useFetch<IpResult>('information/ip', {
 
   <USeparator class="mt-5" type="dashed" />
 
-  <UFormField class="mt-5">
-    <UCheckbox variant="card" label="Wusstest du das deine IP-Adresse ungefähre Standortdaten sowie dein Internet-Anbieter preisgibt?" orientation="horizontal" v-model="survey.surveyIpKnowledge"/>
-  </UFormField>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das deine IP-Adresse ungefähre Standortdaten sowie dein Internet-Anbieter preisgibt?" v-model="survey.surveyIpKnowledge"/>
 
-  <UFormField class="mt-5" required label="Wie stark beunruhigen dich diese Daten?" description="">
-    <div class="flex items-center gap-3 mt-5">
-      <span class="text-xs text-stone-500 whitespace-nowrap">Niedrig</span>
-      <USlider v-model="survey.surveyIpScareFactor" />
-      <span class="text-xs text-stone-500 whitespace-nowrap">Hoch</span>
-    </div>
-  </UFormField>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.surveyIpScareFactor"/>
 
 </template>
 

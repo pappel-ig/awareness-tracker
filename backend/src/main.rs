@@ -23,7 +23,7 @@ use hyper_util::server::conn::auto::Builder;
 use hyper_util::service::TowerToHyperService;
 use tokio::net::TcpListener;
 use tower::Service;
-use log::info;
+use log::{info, warn};
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::set_header::SetResponseHeaderLayer;
 use ip::IpInformationService;
@@ -41,7 +41,10 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_writer(std::io::stdout)
         .init();
-    dotenv().ok();
+    match dotenv() {
+        Err(e) if !e.not_found() => warn!(".env konnte nicht geladen werden: {e}"),
+        _ => {}
+    }
     rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
         .map_err(|_| anyhow::anyhow!("Crypto-Provider konnte nicht installiert werden"))?;
@@ -57,15 +60,7 @@ async fn main() -> Result<()> {
     let leak_client = leak_api::build_client()?;
     tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone()));
     let turnstile_client = Arc::new(turnstile::TurnstileClient::new()?);
-    let email_template_service = EmailTemplateService::new(
-        env::var("SMTP_SERVER").unwrap_or_else(|_| "localhost".to_string()),
-        env::var("SMTP_PORT").unwrap_or_else(|_| "1025".to_string()).parse::<u16>().context("SMTP_PORT invalid value")?,
-        env::var("SMTP_USERNAME").unwrap_or_else(|_| "mock_user".to_string()),
-        env::var("SMTP_PASSWORD").unwrap_or_else(|_| "mock_pass".to_string()),
-        env::var("SMTP_NAME").unwrap_or_else(|_| "Example".to_string()),
-        env::var("SMTP_FROM").unwrap_or_else(|_| "mail@example.org".to_string()),
-        env::var("DEBUG").is_ok()
-    );
+    let email_template_service = EmailTemplateService::new()?;
 
     info!("Start Backend on {}", bind_addr);
 
@@ -85,12 +80,7 @@ async fn main() -> Result<()> {
         .layer(Extension(Arc::new(ip_information_client)));
 
     tokio::spawn(async {
-        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .expect("failed to install SIGTERM handler");
-        tokio::select! {
-            _ = sigterm.recv() => {},
-            _ = tokio::signal::ctrl_c() => {},
-        }
+        shutdown_signal().await;
         info!("Stopping Backend");
         std::process::exit(0);
     });
@@ -124,4 +114,21 @@ async fn main() -> Result<()> {
                 .await;
         });
     }
+}
+
+#[cfg(unix)]
+async fn shutdown_signal() {
+    let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        .expect("failed to install SIGTERM handler");
+    tokio::select! {
+        _ = sigterm.recv() => {},
+        _ = tokio::signal::ctrl_c() => {},
+    }
+}
+
+#[cfg(not(unix))]
+async fn shutdown_signal() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to install Ctrl+C handler");
 }

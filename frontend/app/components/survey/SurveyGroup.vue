@@ -5,9 +5,11 @@ import SurveyDemographics from "~/components/survey/pages/SurveyDemographics.vue
 import SurveyLeak from "~/components/survey/pages/SurveyLeak.vue";
 import SurveyIp from "~/components/survey/pages/SurveyIp.vue";
 import SurveyFingerprint from "~/components/survey/pages/SurveyFingerprint.vue";
+import SurveyBehavior from "~/components/survey/pages/SurveyBehavior.vue";
 
 const surveyGroup = [
     SurveyStart,
+    SurveyBehavior,
     SurveyDemographics,
     SurveyLeak,
     SurveyIp,

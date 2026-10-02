@@ -48,17 +48,9 @@ onMounted(async () => {
 
   <USeparator class="mt-5" type="dashed" />
 
-  <UFormField class="mt-5">
-    <UCheckbox v-model="survey.surveyFingerprintKnowledge" variant="card" label="Wusstest du das dein Browser/Hardware einen solchen digitalen Fingerabdruck haben?" orientation="horizontal"/>
-  </UFormField>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das dein Browser/Hardware einen solchen digitalen Fingerabdruck haben?" v-model="survey.surveyFingerprintKnowledge"/>
 
-  <UFormField class="mt-5" required label="Wie stark beunruhigt dich dieser Fingerabdruck?">
-    <div class="flex items-center gap-3 mt-5">
-      <span class="text-xs text-stone-500 whitespace-nowrap">Niedrig</span>
-      <USlider v-model="survey.surveyFingerprintScareFactor" />
-      <span class="text-xs text-stone-500 whitespace-nowrap">Hoch</span>
-    </div>
-  </UFormField>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigt dich dieser Fingerabdruck?" v-model="survey.surveyFingerprintScareFactor"/>
 </template>
 
 <style scoped>

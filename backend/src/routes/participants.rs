@@ -88,7 +88,7 @@ async fn new_participant(
                         &email,
                         vals,
                     )
-                    .map_err(|e| e.to_string())
+                    .map_err(|e| format!("{e:#}"))
             })
             .await;
             if let Ok(Err(e)) = result {
