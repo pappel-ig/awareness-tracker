@@ -61,33 +61,22 @@ async fn new_participant(
     let token_hash = hash_token(&token);
 
     let inserted = db.query_opt(
-        "INSERT INTO participants (id, email, token_hash, leak_check) VALUES ($1, $2, $3, $4)
+        "INSERT INTO participants (id, email, token_hash, leak_check, invite_sent) VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (email) DO NOTHING
          RETURNING id",
-        &[&uuid, &body.email, &token_hash, &body.leak_check],
+        &[&uuid, &body.email, &token_hash, &body.leak_check, &!body.leak_check],
     ).await
         .map_err(|e| {
             warn!("Failed to insert participant: {}", e.as_db_error().expect("db error:"));
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
-
-    if inserted.is_some() {
+    
+    if inserted.is_some() && !body.leak_check {
         let email = body.email.clone();
-        let survey_url = format!("https://{}/survey?token={}", config.frontend_addr, token);
-        let mut vals = HashMap::new();
-        vals.insert("survey", survey_url);
-        vals.insert("bind", config.addr.clone());
-        vals.insert("token", token);
-
         tokio::spawn(async move {
             let result = tokio::task::spawn_blocking(move || {
                 mailer
-                    .send_template(
-                        "templates/invite.html",
-                        "Deine Einladung zur Security Awareness Umfrage",
-                        &email,
-                        vals,
-                    )
+                    .send_invite(&config, &email, &token)
                     .map_err(|e| format!("{e:#}"))
             })
                 .await;

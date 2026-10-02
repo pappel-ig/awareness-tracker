@@ -58,9 +58,10 @@ async fn main() -> Result<()> {
     let db = Arc::new(db::connect(&database_url).await?);
     let ip_information_client = IpInformationService::new()?;
     let leak_client = leak_api::build_client()?;
-    tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone()));
     let turnstile_client = Arc::new(turnstile::TurnstileClient::new()?);
     let email_template_service = EmailTemplateService::new()?;
+    let config = Config { addr, frontend_addr };
+    tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone(), email_template_service.clone(), config.clone()));
 
     info!("Start Backend on {}", bind_addr);
 
@@ -72,7 +73,7 @@ async fn main() -> Result<()> {
     let listener = TcpListener::bind(&bind_addr).await?;
     let app = router()
         .layer(cors)
-        .layer(Extension(Config {addr, frontend_addr}))
+        .layer(Extension(config))
         .layer(Extension(db))
         .layer(Extension(leak_client))
         .layer(Extension(turnstile_client))

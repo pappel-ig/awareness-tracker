@@ -11,6 +11,10 @@ use time::{Date, OffsetDateTime};
 use tokio_postgres::Client as DbClient;
 use uuid::Uuid;
 
+use crate::auth::{generate_token, hash_token};
+use crate::mail::EmailTemplateService;
+use crate::Config;
+
 const POLL_INTERVAL: Duration = Duration::from_secs(5);
 const MAX_BACKOFF: Duration = Duration::from_secs(30 * 60);
 const DEFAULT_RATE_LIMIT_WAIT: Duration = Duration::from_secs(10);
@@ -82,10 +86,12 @@ async fn check_email(client: &Client, email: &str) -> Result<Vec<Breach>, CheckE
     }
 }
 
-pub async fn run_worker(db: Arc<DbClient>, client: Arc<Client>) {
+pub async fn run_worker(db: Arc<DbClient>, client: Arc<Client>, mailer: EmailTemplateService, config: Config) {
     let mut backoff = POLL_INTERVAL;
 
     loop {
+        send_pending_invites(&db, &mailer, &config).await;
+
         let pending = db
             .query_opt(
                 "SELECT id, email FROM participants
@@ -135,6 +141,56 @@ pub async fn run_worker(db: Arc<DbClient>, client: Arc<Client>) {
                 tokio::time::sleep(backoff).await;
                 backoff = (backoff * 2).min(MAX_BACKOFF);
             }
+        }
+    }
+}
+
+async fn send_pending_invites(db: &DbClient, mailer: &EmailTemplateService, config: &Config) {
+    let rows = match db
+        .query(
+            "SELECT id, email FROM participants
+             WHERE NOT invite_sent AND leak_breaches IS NOT NULL
+             ORDER BY registered_at",
+            &[],
+        )
+        .await
+    {
+        Ok(rows) => rows,
+        Err(e) => {
+            error!("leak check worker: failed to query pending invites: {e}");
+            return;
+        }
+    };
+
+    for row in rows {
+        let id: Uuid = row.get("id");
+        let email: String = row.get("email");
+
+        let token = generate_token();
+        let token_hash = hash_token(&token);
+        if let Err(e) = db
+            .execute("UPDATE participants SET token_hash = $1 WHERE id = $2", &[&token_hash, &id])
+            .await
+        {
+            error!("leak check worker: failed to store token for {id}: {e}");
+            continue;
+        }
+
+        let mailer = mailer.clone();
+        let config = config.clone();
+        let sent = tokio::task::spawn_blocking(move || mailer.send_invite(&config, &email, &token)).await;
+
+        match sent {
+            Ok(Ok(())) => {
+                if let Err(e) = db
+                    .execute("UPDATE participants SET invite_sent = TRUE WHERE id = $1", &[&id])
+                    .await
+                {
+                    error!("leak check worker: failed to mark invite as sent for {id}: {e}");
+                }
+            }
+            Ok(Err(e)) => warn!("leak check worker: failed to send invite for {id}: {e:#}"),
+            Err(e) => error!("leak check worker: invite task for {id} failed: {e}"),
         }
     }
 }

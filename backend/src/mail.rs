@@ -5,6 +5,7 @@ use lettre::{Message, SmtpTransport, Transport};
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::client::{Tls, TlsParameters};
+use crate::Config;
 
 const INVITE_TEMPLATE: &str = include_str!("../templates/invite.html");
 
@@ -16,6 +17,20 @@ pub struct EmailTemplateService {
 }
 
 impl EmailTemplateService {
+
+    pub fn send_invite(&self, config: &Config, to_mail: &str, token: &str) -> Result<()> {
+        let mut vals = HashMap::new();
+        vals.insert("survey", format!("https://{}/survey?token={}", config.frontend_addr, token));
+        vals.insert("bind", config.addr.clone());
+        vals.insert("token", token.to_string());
+
+        self.send_template(
+            "templates/invite.html",
+            "Deine Einladung zur Security Awareness Umfrage",
+            to_mail,
+            vals,
+        )
+    }
 
     pub fn send_template(&self, template: &str, subject: &str, to_mail: &str, vals: HashMap<&str, String>) -> Result<()> {
         let contents = match template {

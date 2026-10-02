@@ -35,6 +35,7 @@ pub async fn connect(database_url: &str) -> Result<Client> {
                     token_hash BYTEA UNIQUE NOT NULL,
                     leak_check BOOLEAN,
                     leak_breaches JSONB,
+                    invite_sent BOOLEAN NOT NULL,
                     registered_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 );
             "
