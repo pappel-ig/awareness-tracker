@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import * as v from 'valibot'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 
 const survey = useSurveyState()
+
+useSurveyPageValidation(v.object({ fingerprintKnowledge: binaryAnswer, fingerprintScareFactor: ordinalAnswer }))
 
 interface FingerprintInfo {
   visitorId: string
@@ -48,9 +51,9 @@ onMounted(async () => {
 
   <USeparator class="mt-5" type="dashed" />
 
-  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das dein Browser/Hardware einen solchen digitalen Fingerabdruck haben?" v-model="survey.surveyFingerprintKnowledge"/>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das dein Browser/Hardware einen solchen digitalen Fingerabdruck haben?" v-model="survey.fingerprintKnowledge"/>
 
-  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigt dich dieser Fingerabdruck?" v-model="survey.surveyFingerprintScareFactor"/>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigt dich dieser Fingerabdruck?" v-model="survey.fingerprintScareFactor"/>
 </template>
 
 <style scoped>

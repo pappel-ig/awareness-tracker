@@ -8,19 +8,20 @@ export type BehaviorStatement =
     | 'updates'
     | 'publicWifi'
     | 'adBlocker'
-    | 'acceptCookies'
 
 export type SurveyState = {
   age: string
   itKnowledge: number | null,
   securityAwareness: number | null,
-  surveyLeakKnowledge: boolean | null,
-  surveyLeakScareFactor: number | null,
-  surveyIpKnowledge: boolean | null,
-  surveyIpScareFactor: number | null,
-  surveyFingerprintKnowledge: boolean | null,
-  surveyFingerprintScareFactor: number | null,
+  leakKnowledge: boolean | null,
+  leakScareFactor: number | null,
+  ipKnowledge: boolean | null,
+  ipScareFactor: number | null,
+  fingerprintKnowledge: boolean | null,
+  fingerprintScareFactor: number | null,
   surveyBehavior: Record<BehaviorStatement, boolean | null>,
+  trackingPixelKnowledge: boolean | null,
+  trackingPixelScareFactor: number | null
 }
 
 export function useSurveyState() {
@@ -28,12 +29,12 @@ export function useSurveyState() {
     age: 'Keine Angabe',
     itKnowledge: null,
     securityAwareness: null,
-    surveyLeakKnowledge: null,
-    surveyLeakScareFactor: null,
-    surveyIpKnowledge: null,
-    surveyIpScareFactor: null,
-    surveyFingerprintKnowledge: null,
-    surveyFingerprintScareFactor: null,
+    leakKnowledge: null,
+    leakScareFactor: null,
+    ipKnowledge: null,
+    ipScareFactor: null,
+    fingerprintKnowledge: null,
+    fingerprintScareFactor: null,
     surveyBehavior: {
       vpn: null,
       passwordReuse: null,
@@ -44,7 +45,8 @@ export function useSurveyState() {
       updates: null,
       publicWifi: null,
       adBlocker: null,
-      acceptCookies: null,
     },
+    trackingPixelKnowledge: null,
+    trackingPixelScareFactor: null
   }))
 }

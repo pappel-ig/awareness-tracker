@@ -12,7 +12,7 @@ function select(value: boolean) {
 
 <template>
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-sm border border-default px-4 py-3">
-    <span class="text-sm">{{ label }}</span>
+    <span class="text-sm">{{ label }}<span class="text-error ms-0.5">*</span></span>
     <UFieldGroup size="sm" class="shrink-0">
       <UButton
         icon="i-heroicons-check-20-solid"

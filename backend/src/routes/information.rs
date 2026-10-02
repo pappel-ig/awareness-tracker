@@ -8,11 +8,13 @@ use axum::{Extension, Json, Router};
 use serde_json::{Value, json};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use chrono::{DateTime, Utc};
 use tokio_postgres::Client;
 
 pub fn router() -> Router {
     Router::new()
         .route("/information/leaks", get(leak_status).route_layer(from_fn(require_participant)))
+        .route("/information/tracks", get(tracks).route_layer(from_fn(require_participant)))
         .route("/information/ip", get(ip).route_layer(from_fn(require_participant)))
 }
 
@@ -36,6 +38,38 @@ async fn leak_status(
         "leak_check": leak_check.unwrap_or(false),
         "breaches": leak_breaches.unwrap_or_else(|| json!([])),
     })))
+}
+
+async fn tracks(
+    Extension(participant): Extension<Participant>,
+    Extension(db): Extension<Arc<Client>>,
+    Extension(ip_client): Extension<Arc<IpInformationService>>
+) -> Result<Json<Value>, StatusCode> {
+    let rows = db
+        .query(
+            "SELECT * FROM tracks WHERE participant = $1",
+            &[&participant.id],
+        )
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mut clicks = Vec::new();
+
+    for row in rows {
+        let created_at: DateTime<Utc> = row.get("created_at");
+        let remote_addr: String = row.get("remote_addr");
+        let headers: Value = row.get("headers");
+
+        clicks.push(json!({
+            "created_at": created_at.to_rfc3339(),
+            "remote_addr": remote_addr,
+            "remote_addr_info": ip_client.lookup(remote_addr.parse().unwrap()),
+            "headers": headers,
+
+        }))
+    }
+
+    Ok(Json(Value::Array(clicks)))
 }
 
 async fn ip(

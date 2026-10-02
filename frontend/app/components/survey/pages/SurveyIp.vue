@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import * as v from 'valibot'
 const survey = useSurveyState()
+
+useSurveyPageValidation(v.object({ ipKnowledge: binaryAnswer, ipScareFactor: ordinalAnswer }))
 const apiBase = useApiBase()
 const route = useRoute()
 
@@ -36,9 +39,9 @@ const { data: result } = await useFetch<IpResult>('information/ip', {
 
   <USeparator class="mt-5" type="dashed" />
 
-  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das deine IP-Adresse ungefähre Standortdaten sowie dein Internet-Anbieter preisgibt?" v-model="survey.surveyIpKnowledge"/>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das deine IP-Adresse ungefähre Standortdaten sowie dein Internet-Anbieter preisgibt?" v-model="survey.ipKnowledge"/>
 
-  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.surveyIpScareFactor"/>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.ipScareFactor"/>
 
 </template>
 

@@ -44,7 +44,7 @@ async fn tracker_browser(
     let headers = extract_headers(headers);
     let tls = serde_json::to_value(&*tls_info).unwrap();
     let headers = serde_json::to_value(&headers).unwrap();
-    let remote_addr = remote_addr.to_string();
+    let remote_addr = remote_addr.ip().to_string();
     let method = method.as_str();
 
     db.execute(
@@ -83,7 +83,7 @@ async fn tracker_pixel(
     let headers = extract_headers(headers);
     let tls = serde_json::to_value(&*tls_info).unwrap();
     let headers = serde_json::to_value(&headers).unwrap();
-    let remote_addr = remote_addr.to_string();
+    let remote_addr = remote_addr.ip().to_string();
     let method = method.as_str();
 
     db.execute(

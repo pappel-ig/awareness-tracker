@@ -1,7 +1,6 @@
 <script setup lang="ts">
+import * as v from 'valibot'
 import type {BehaviorStatement} from "~/composables/useSurveyState";
-
-const survey = useSurveyState()
 
 const statements: { key: BehaviorStatement, label: string }[] = [
   { key: 'vpn', label: 'Ich benutze ein VPN' },
@@ -14,6 +13,11 @@ const statements: { key: BehaviorStatement, label: string }[] = [
   { key: 'publicWifi', label: 'Ich verbinde mich mit öffentlichen WLAN-Netzen' },
   { key: 'adBlocker', label: 'Ich benutze einen Werbe- bzw. Tracking-Blocker' },
 ]
+
+const survey = useSurveyState()
+useSurveyPageValidation(v.object({
+  surveyBehavior: v.object(Object.fromEntries(statements.map(s => [s.key, binaryAnswer])))
+}))
 </script>
 
 <template>

@@ -90,7 +90,7 @@ async fn new_participant(
                     )
                     .map_err(|e| format!("{e:#}"))
             })
-            .await;
+                .await;
             if let Ok(Err(e)) = result {
                 warn!("Failed to send invite mail: {}", e);
             }

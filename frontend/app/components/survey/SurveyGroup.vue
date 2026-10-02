@@ -6,6 +6,7 @@ import SurveyLeak from "~/components/survey/pages/SurveyLeak.vue";
 import SurveyIp from "~/components/survey/pages/SurveyIp.vue";
 import SurveyFingerprint from "~/components/survey/pages/SurveyFingerprint.vue";
 import SurveyBehavior from "~/components/survey/pages/SurveyBehavior.vue";
+import SurveyTracker from "~/components/survey/pages/SurveyTracker.vue";
 
 const surveyGroup = [
     SurveyStart,
@@ -13,13 +14,15 @@ const surveyGroup = [
     SurveyDemographics,
     SurveyLeak,
     SurveyIp,
-    SurveyFingerprint
+    SurveyFingerprint,
+    SurveyTracker,
 ]
 
 const currentIndex = ref(0);
+const pageValid = provideSurveyPageValid()
 
 function handleNext() {
-  if (hasNext()) {
+  if (hasNext() && pageValid.value) {
     currentIndex.value++
   }
 }
@@ -42,7 +45,7 @@ function hasNext() {
 
 <template>
   <Transition mode="out-in">
-    <SurveyGroupBase :hasNext="hasNext()" :hasPrev="hasPrev()" @next="handleNext()" @prev="handlePrev()">
+    <SurveyGroupBase :hasNext="hasNext()" :hasPrev="hasPrev()" :canNext="pageValid" @next="handleNext()" @prev="handlePrev()">
       <component :is="surveyGroup[currentIndex]" :key="currentIndex"/>
     </SurveyGroupBase>
   </Transition>

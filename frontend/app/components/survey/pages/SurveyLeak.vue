@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import * as v from 'valibot'
 import type {TableColumn} from "#ui/components/Table.vue";
 import {UBadge} from "#components";
 
 const survey = useSurveyState()
+
+useSurveyPageValidation(v.object({ leakKnowledge: binaryAnswer, leakScareFactor: ordinalAnswer }))
 const apiBase = useApiBase()
 const route = useRoute()
 const router = useRouter()
@@ -89,9 +92,8 @@ const visibleBreaches = computed(() =>
 
   <USeparator v-if="result.breaches.length > 0 && result.leak_check" class="mt-5" type="dashed" />
 
-  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das solche Informationen im Internet existieren?" v-model="survey.surveyLeakKnowledge"/>
-
-  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.surveyLeakScareFactor"/>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das solche Informationen im Internet existieren?" v-model="survey.leakKnowledge"/>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.leakScareFactor"/>
 </template>
 
 <style scoped>

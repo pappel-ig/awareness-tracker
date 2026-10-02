@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import * as v from 'valibot'
 const age_values = ['Keine Angabe', '0-18', '18-25', '26-45', '46- 55', '55+']
 const survey = useSurveyState()
+
+useSurveyPageValidation(v.object({ itKnowledge: ordinalAnswer, securityAwareness: ordinalAnswer }))
 
 </script>
 
