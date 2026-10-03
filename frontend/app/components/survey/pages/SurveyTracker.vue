@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import * as v from 'valibot'
+import {h} from 'vue'
 import type {TableColumn} from "#ui/components/Table.vue";
 import {UBadge} from "#components";
 
@@ -15,6 +16,10 @@ interface TrackerResult {
     "user-agent": string
   }
   remote_addr: string
+  remote_addr_info?: {
+    isp?: string
+    city?: string
+  }
 }
 
 
@@ -48,6 +53,17 @@ const columns: TableColumn<TrackerResult>[] = [
     }
   },
   {
+    id: 'connection',
+    header: "IP-Info",
+    cell: ({ row }) => {
+      const info = row.original.remote_addr_info
+      return h('div', [
+        h('div', { class: 'font-medium' }, row.original.remote_addr),
+        h('div', { class: 'text-sm text-muted' }, [info?.isp, info?.city].filter(Boolean).join(' - '))
+      ])
+    }
+  },
+  {
     accessorKey: 'headers.user-agent',
     header: "User Agent",
     meta: {
@@ -56,18 +72,6 @@ const columns: TableColumn<TrackerResult>[] = [
         td: 'whitespace-normal break-words'
       }
     }
-  },
-  {
-    accessorKey: 'remote_addr',
-    header: "IP",
-  },
-  {
-    accessorKey: 'remote_addr_info.isp',
-    header: "ISP",
-  },
-  {
-    accessorKey: 'remote_addr_info.city',
-    header: "Standort",
   },
 ]
 
