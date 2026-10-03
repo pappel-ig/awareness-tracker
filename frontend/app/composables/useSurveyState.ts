@@ -1,3 +1,7 @@
+import type {IpResult} from "~/components/survey/pages/SurveyIp.vue";
+import type {LeakResult} from "~/components/survey/pages/SurveyLeak.vue";
+import type {TrackerResult} from "~/components/survey/pages/SurveyTracker.vue";
+
 export type BehaviorStatement =
     | 'vpn'
     | 'passwordReuse'
@@ -10,6 +14,11 @@ export type BehaviorStatement =
     | 'adBlocker'
 
 export type SurveyState = {
+  meta: {
+    ip: IpResult | null,
+    leak: LeakResult | null,
+    tracker: TrackerResult[] | null
+  }
   age: string
   itKnowledge: number | null,
   securityAwareness: number | null,
@@ -26,6 +35,11 @@ export type SurveyState = {
 
 export function useSurveyState() {
   return useState<SurveyState>('survey', () => ({
+    meta: {
+      ip: null,
+      leak: null,
+      tracker: null
+    },
     age: 'Keine Angabe',
     itKnowledge: null,
     securityAwareness: null,

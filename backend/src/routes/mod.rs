@@ -1,6 +1,7 @@
 mod track;
 mod participants;
 mod information;
+mod survey;
 
 use axum::Router;
 
@@ -9,4 +10,5 @@ pub fn router() -> Router {
         .merge(participants::router())
         .merge(track::router())
         .merge(information::router())
+        .merge(survey::router())
 }

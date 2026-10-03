@@ -8,6 +8,13 @@ import SurveyFingerprint from "~/components/survey/pages/SurveyFingerprint.vue";
 import SurveyBehavior from "~/components/survey/pages/SurveyBehavior.vue";
 import SurveyTracker from "~/components/survey/pages/SurveyTracker.vue";
 
+const survey = useSurveyState()
+const apiBase = useApiBase()
+const route = useRoute()
+const router = useRouter()
+
+const token = route.query.token
+
 const surveyGroup = [
     SurveyStart,
     SurveyBehavior,
@@ -15,7 +22,7 @@ const surveyGroup = [
     SurveyLeak,
     SurveyIp,
     SurveyFingerprint,
-    SurveyTracker,
+    SurveyTracker
 ]
 
 const currentIndex = ref(0);
@@ -41,11 +48,21 @@ function hasNext() {
   return currentIndex.value < surveyGroup.length - 1
 }
 
+async function handleFinish() {
+  const result = await $fetch("survey", {
+    baseURL: apiBase,
+    method: "POST",
+    query: { token },
+    headers: { "Content-Type": "application/json" },
+    body: survey.value
+  })
+}
+
 </script>
 
 <template>
   <Transition mode="out-in">
-    <SurveyGroupBase :hasNext="hasNext()" :hasPrev="hasPrev()" :canNext="pageValid" @next="handleNext()" @prev="handlePrev()">
+    <SurveyGroupBase :hasNext="hasNext()" :hasPrev="hasPrev()" :canNext="pageValid" @next="handleNext()" @prev="handlePrev()" @finish="handleFinish()">
       <component :is="surveyGroup[currentIndex]" :key="currentIndex"/>
     </SurveyGroupBase>
   </Transition>

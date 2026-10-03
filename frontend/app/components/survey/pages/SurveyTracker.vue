@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import * as v from 'valibot'
 import {h} from 'vue'
+import * as v from 'valibot'
 import type {TableColumn} from "#ui/components/Table.vue";
-import {UBadge} from "#components";
 
 const survey = useSurveyState()
 const apiBase = useApiBase()
 const route = useRoute()
 const router = useRouter()
 const token = route.query.token
+useSurveyPageValidation(v.object({ trackingPixelKnowledge: binaryAnswer, trackingPixelScareFactor: ordinalAnswer }))
 
-interface TrackerResult {
+export interface TrackerResult {
   created_at: Date,
   headers: {
     "user-agent": string
@@ -21,8 +21,6 @@ interface TrackerResult {
     city?: string
   }
 }
-
-
 
 if (!route.query.token) {
   router.replace({ path: '/start' })
@@ -37,6 +35,8 @@ const result = await $fetch<TrackerResult[]>(apiBase + "information/tracks", {
     "Content-Type": "application/json"
   }
 })
+
+survey.value.meta.tracker = result;
 
 const columns: TableColumn<TrackerResult>[] = [
   {
@@ -90,7 +90,7 @@ const columns: TableColumn<TrackerResult>[] = [
   <UTable :data="result" :columns="columns" class="flex-1" />
 
   <SurveyBinaryQuestion class="mt-5" label="Wusstest du das solche Informationen durch das Öffnen der E-Mail geteilt werden?" v-model="survey.trackingPixelKnowledge"/>
-  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.leakScareFactor"/>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.trackingPixelScareFactor"/>
 </template>
 
 <style scoped>

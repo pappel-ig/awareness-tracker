@@ -8,7 +8,7 @@ const route = useRoute()
 
 const token = route.query.token
 
-interface IpResult {
+export interface IpResult {
   city: string | null
   country: string | null
   country_code: string | null
@@ -17,12 +17,14 @@ interface IpResult {
   ip: string | null
 }
 
-const { data: result } = await useFetch<IpResult>('information/ip', {
+const result = await $fetch<IpResult>('information/ip', {
   baseURL: apiBase,
   method: 'GET',
   query: { token },
   headers: { 'Content-Type': 'application/json' }
 })
+
+survey.value.meta.ip = result;
 </script>
 
 <template>

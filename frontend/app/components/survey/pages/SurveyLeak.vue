@@ -12,12 +12,12 @@ const router = useRouter()
 
 const token = route.query.token
 
-interface LeakResult {
+export interface LeakResult {
   breaches: Breach[]
   leak_check: boolean
 }
 
-interface Breach {
+export interface Breach {
   AddedDate: Date,
   DataClasses: string[],
   Domain: string,
@@ -37,6 +37,8 @@ const result = await $fetch<LeakResult>(apiBase + "information/leaks", {
     "Content-Type": "application/json"
   }
 })
+
+survey.value.meta.leak = result;
 
 const columns: TableColumn<Breach>[] = [
   {
