@@ -32,6 +32,45 @@ const result = await $fetch<TrackerResult[]>(apiBase + "information/tracks", {
     "Content-Type": "application/json"
   }
 })
+
+const columns: TableColumn<TrackerResult>[] = [
+  {
+    accessorKey: 'created_at',
+    header: 'Date',
+    cell: ({ row }) => {
+      return new Date(row.getValue('created_at')).toLocaleString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
+    }
+  },
+  {
+    accessorKey: 'headers.user-agent',
+    header: "User Agent",
+    meta: {
+      class: {
+        th: 'whitespace-normal break-words',
+        td: 'whitespace-normal break-words'
+      }
+    }
+  },
+  {
+    accessorKey: 'remote_addr',
+    header: "IP",
+  },
+  {
+    accessorKey: 'remote_addr_info.isp',
+    header: "ISP",
+  },
+  {
+    accessorKey: 'remote_addr_info.city',
+    header: "Standort",
+  },
+]
+
 </script>
 
 <template>
@@ -44,7 +83,7 @@ const result = await $fetch<TrackerResult[]>(apiBase + "information/tracks", {
     wann du die E-Mail geöffnet hast bzw. wann der Tracking Pixel geladen wurde.
   </p>
 
-  <UTable :data="result" class="flex-1" />
+  <UTable :data="result" :columns="columns" class="flex-1" />
 
   <SurveyBinaryQuestion class="mt-5" label="Wusstest du das solche Informationen durch das Öffnen der E-Mail geteilt werden?" v-model="survey.trackingPixelKnowledge"/>
   <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.leakScareFactor"/>
