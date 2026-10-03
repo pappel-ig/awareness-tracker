@@ -43,6 +43,7 @@ pub async fn connect(database_url: &str) -> Result<Client> {
 
                 CREATE TABLE IF NOT EXISTS surveys (
                     id UUID PRIMARY KEY,
+                    filled_in TIMESTAMPTZ NOT NULL DEFAULT now(),
                     data JSONB NOT NULL
                 );
             "

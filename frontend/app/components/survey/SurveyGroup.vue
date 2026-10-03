@@ -12,6 +12,7 @@ const survey = useSurveyState()
 const apiBase = useApiBase()
 const route = useRoute()
 const router = useRouter()
+const banner = useBanner()
 
 const surveyGroup = [
     SurveyStart,
@@ -48,12 +49,21 @@ function hasNext() {
 
 async function handleFinish() {
   const token = route.query.token
-  const result = await $fetch("survey", {
+  $fetch("survey", {
     baseURL: apiBase,
     method: "POST",
     query: { token },
     headers: { "Content-Type": "application/json" },
     body: survey.value
+  }).then(() => {
+    router.push({
+      name: 'end',
+      query: {
+        ...route.query
+      }
+    })
+  }).catch(() => {
+    banner.value = { title: 'Beim Absenden deiner Umfrage ist etwas schiefgelaufen :(', color: 'error' }
   })
 }
 
