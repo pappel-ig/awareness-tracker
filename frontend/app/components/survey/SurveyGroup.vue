@@ -13,8 +13,6 @@ const apiBase = useApiBase()
 const route = useRoute()
 const router = useRouter()
 
-const token = route.query.token
-
 const surveyGroup = [
     SurveyStart,
     SurveyBehavior,
@@ -49,6 +47,7 @@ function hasNext() {
 }
 
 async function handleFinish() {
+  const token = route.query.token
   const result = await $fetch("survey", {
     baseURL: apiBase,
     method: "POST",
