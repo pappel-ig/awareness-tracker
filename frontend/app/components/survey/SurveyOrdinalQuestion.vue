@@ -1,11 +1,12 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
-  label: string
+  label?: string
   lowLabel?: string
   highLabel?: string
 }>(), {
-  lowLabel: 'Niedrig',
-  highLabel: 'Hoch'
+  label: 'Wie besorgt bist du, dass solche Daten im Internet existieren?',
+  lowLabel: 'Nicht besorgt',
+  highLabel: 'Besorgt'
 })
 
 const model = defineModel<number | null>({ required: true })

@@ -37,9 +37,9 @@ export type SurveyState = {
   updates: boolean | null,
   publicWifi: boolean | null,
   adBlocker: boolean | null,
-
   trackingPixelKnowledge: boolean | null,
-  trackingPixelScareFactor: number | null
+  trackingPixelScareFactor: number | null,
+  blockExternalData: boolean | null
 }
 
 export function useSurveyState() {
@@ -68,6 +68,7 @@ export function useSurveyState() {
     publicWifi: null,
     adBlocker: null,
     trackingPixelKnowledge: null,
-    trackingPixelScareFactor: null
+    trackingPixelScareFactor: null,
+    blockExternalData: null,
   }))
 }

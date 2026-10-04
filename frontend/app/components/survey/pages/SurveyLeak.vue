@@ -51,7 +51,7 @@ watch(() => result.value?.breaches, (value) => {
 const columns: TableColumn<Breach>[] = [
   {
     accessorKey: 'Name',
-    header: 'Leak',
+    header: 'Datenleck',
     meta: {
       class: {
         th: 'w-[25%]',
@@ -62,7 +62,7 @@ const columns: TableColumn<Breach>[] = [
   },
   {
     accessorKey: 'DataClasses',
-    header: 'Daten',
+    header: 'Betroffene Daten',
     cell: ({ row }) => {
       return h('div', { class: 'flex flex-wrap gap-1' },
         row.getValue<string[]>('DataClasses').map(leak => {
@@ -100,7 +100,7 @@ async function updateLeakStatus() {
       if (result.value.breaches != null) return
     }
   } catch (error) {
-    banner.value = { color: "error", title: "Die HaveIBeenPwned Daten konnte leider nicht geholt werden!"}
+    banner.value = { color: "error", title: "Die HaveIBeenPwned-Daten konnten leider nicht abgerufen werden."}
   } finally {
     polling.value = false
   }
@@ -114,10 +114,9 @@ const visibleBreaches = computed(() =>
 
 <template>
   <p>
-    Im Internet existieren Leaks die unter Umständen persönliche Informationen wie Passwörter, Bankdaten oder auch Adressen
-    beinhalten.
-    <span v-if="!loading && breaches.length > 0 && leakCheck">Hier ist ein Teil deiner Informationen, die mit deiner E-Mail verknüpft werden können:</span>
-    <span v-if="!loading && !(breaches.length > 0) && leakCheck">Super! Zu deiner E-Mail Adresse konnten keine bekannten Datenlecks gefunden werden!</span>
+    Im Internet existieren Datenlecks (Leaks), die unter Umständen persönliche Informationen wie Passwörter, Bankdaten oder auch Adressen
+    enthalten.
+    <span v-if="!loading && breaches.length > 0 && leakCheck">Hier siehst du einen Teil der Informationen, die mit deiner E-Mail-Adresse verknüpft werden können:</span>
   </p>
 
   <UTable :data="visibleBreaches" :columns="columns" :loading="loading" :ui="{ base: 'table-fixed w-full' }">
@@ -125,7 +124,7 @@ const visibleBreaches = computed(() =>
       <div class="flex flex-col items-center justify-center py-6 text-gray-500">
         <UIcon name="i-heroicons-face-smile" class="w-8 h-8 mb-2" />
         <span class="text-sm">
-          Super! Es wurden keine Leaks zu deiner E-Mail gefunden.
+          Es wurden keine Datenlecks zu deiner E-Mail-Adresse gefunden. Das bedeutet jedoch nicht, dass keine Datenlecks vorhanden sind.
         </span>
       </div>
     </template>
@@ -133,8 +132,8 @@ const visibleBreaches = computed(() =>
       <div class="flex flex-col items-center justify-center py-6 text-gray-500">
         <UIcon name="i-heroicons-face-frown" class="w-8 h-8 mb-2" />
         <span class="text-sm">
-          Du hast bei der Anmeldung die Benutzung des Dienstes HaveIBeenPwned.com nicht zugestimmt. Daher konnten keine
-          Daten zu Leaks geladen werden. Du kannst es auch noch nachträglich machen
+          Du hast bei der Anmeldung nicht zugestimmt, dass deine E-Mail-Adresse an HaveIBeenPwned.com übermittelt wird.
+          Daher konnten keine Daten zu Datenlecks geladen werden. Du kannst das aber auch jetzt noch nachholen.
         </span>
         <UButton class="mt-2" variant="outline" color="neutral" :loading="loading" @click="updateLeakStatus()">Jetzt laden</UButton>
       </div>
@@ -149,8 +148,8 @@ const visibleBreaches = computed(() =>
 
   <USeparator v-if="breaches.length > 0 && leakCheck" class="mt-5" type="dashed" />
 
-  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das solche Informationen im Internet existieren?" v-model="survey.leakKnowledge"/>
-  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.leakScareFactor"/>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du, dass solche Informationen im Internet existieren?" v-model="survey.leakKnowledge"/>
+  <SurveyOrdinalQuestion class="mt-5" v-model="survey.leakScareFactor"/>
 </template>
 
 <style scoped>

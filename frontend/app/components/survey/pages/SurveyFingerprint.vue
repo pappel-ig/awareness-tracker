@@ -32,10 +32,9 @@ onMounted(async () => {
 
 <template>
   <p>
-    Websiten können deine Browsern auch ohne IP-Adresse und Cookies erkennen. Dabei werden browserspezifische Merkmale
-    sowie auch Eigenarten bzgl. deiner verwendeten Hardware kombiniert. So können dich Websiten auch ganz ohne Cookies
-    eindeutig identifizieren. Mithilfe von <span v-if="result">{{ result.componentCount }}</span> Merkmalen wird dann
-    ein einzigartige Fingerabdruck erzeugt. Je nach Hardware und verwendeten Browser kann dieser eindeutiger sein.
+    Websites können deinen Browser auch ohne IP-Adresse und Cookies wiedererkennen. Dazu werden browserspezifische
+    Merkmale sowie Eigenheiten deiner Hardware kombiniert und daraus ein einzigartiger digitaler Fingerabdruck erzeugt.
+    Je nach Hardware und verwendetem Browser ist dieser mehr oder weniger eindeutig.
   </p>
 
   <div v-if="loading" class="mt-3 flex items-center gap-2 text-sm text-stone-500">
@@ -51,9 +50,9 @@ onMounted(async () => {
 
   <USeparator class="mt-5" type="dashed" />
 
-  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das dein Browser/Hardware einen solchen digitalen Fingerabdruck haben?" v-model="survey.fingerprintKnowledge"/>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du, dass Websites einen solchen digitalen Fingerabdruck erzeugen können?" v-model="survey.fingerprintKnowledge"/>
 
-  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigt dich dieser Fingerabdruck?" v-model="survey.fingerprintScareFactor"/>
+  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigt dich dieser Fingerabdruck?" low-label="wenig" high-label="stark" v-model="survey.fingerprintScareFactor"/>
 </template>
 
 <style scoped>

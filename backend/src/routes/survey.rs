@@ -40,6 +40,7 @@ pub struct SurveySubmitRequest {
     pub ad_blocker: bool,
     pub tracking_pixel_knowledge: bool,
     pub tracking_pixel_scare_factor: Rating,
+    pub block_external_data: bool
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -63,7 +64,7 @@ pub enum AgeGroup {
     NoAnswer,
     #[serde(rename = "0-18")]
     Under18,
-    #[serde(rename = "18-25")]
+    #[serde(rename = "19-25")]
     From18To25,
     #[serde(rename = "26-45")]
     From26To45,

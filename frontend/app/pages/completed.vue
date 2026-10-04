@@ -4,7 +4,7 @@
 
 <template>
   <p>
-    Du hast die Umfrage bereits ausgefüllt!
+    Du hast die Umfrage bereits ausgefüllt. Vielen Dank für deine Teilnahme!
   </p>
 </template>
 

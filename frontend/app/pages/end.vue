@@ -31,6 +31,7 @@ const usesTwoFactor = (s: SurveyState) => s.twoFactor ?? false
 const updates = (s: SurveyState) => s.updates ?? false
 const publicWifi = (s: SurveyState) => s.publicWifi ?? false
 const adblocker = (s: SurveyState) => s.adBlocker ?? false
+const blockExternalData = (s: SurveyState) => s.blockExternalData ?? false
 
 const recommendations: Recommendation[] = [
   {
@@ -44,25 +45,25 @@ const recommendations: Recommendation[] = [
             passwordLeaked
         )
     ],
-    text: 'Deine Passwörter sind in öffentlichen Leaks vorhanden. Du solltest dringend deine Passwörter ändern! Da du Passwörter wiederverwendest und diese nicht regelmäßig änderst, steht die Chance hoch, dass sich derzeit Leute auch in andere Account einloggen können!'
+    text: 'Deine Passwörter sind in öffentlichen Leaks vorhanden. Du solltest dringend deine Passwörter ändern! Da du Passwörter wiederverwendest und diese nicht regelmäßig änderst, ist die Wahrscheinlichkeit hoch, dass sich Unbefugte auch in deine anderen Accounts einloggen können!'
   },
   {
     key: 'use-passwordmanager',
     severity: "low",
-    title: "Passwort Manager verwenden",
+    title: "Passwort-Manager verwenden",
     when: [
         not(usesPasswordManager)
     ],
-    text: "Du könntest einen Passwort Manager ausprobieren! Die meisten Passwort Manager synchronisieren deine Passwörter automatisch an alle Geräte. Desweiteren bieten Passwort Manager auch eine Autofill Methode an!"
+    text: "Du könntest einen Passwort-Manager ausprobieren! Die meisten Passwort-Manager synchronisieren deine Passwörter automatisch auf alle Geräte. Außerdem bieten Passwort-Manager eine Autofill-Funktion an!"
   },
   {
     key: 'use-2fa',
     severity: "low",
-    title: "2-Faktor-Authentifizierung verwenden",
+    title: "Zwei-Faktor-Authentifizierung verwenden",
     when: [
       not(usesTwoFactor)
     ],
-    "text": "2-Faktor-Authentifizierung verbessert die Sicherheit deiner Logins. Sie erhöht den Schutz vor Phishing und Datenlecks und bildet so eine zusätzliche Barriere."
+    "text": "Zwei-Faktor-Authentifizierung verbessert die Sicherheit deiner Logins. Sie erhöht den Schutz vor Phishing und Datenlecks und bildet so eine zusätzliche Barriere."
   },
   {
     key: 'use-passkeys',
@@ -71,7 +72,7 @@ const recommendations: Recommendation[] = [
     when: [
       not(usesPasskeys)
     ],
-    text: 'Passkeys erlauben eine sehr komfortable passwortfreie Anmeldung und bieten einen sicheren Schutz gegenüber Phishing.'
+    text: 'Passkeys erlauben eine sehr komfortable passwortfreie Anmeldung und bieten einen sicheren Schutz vor Phishing.'
   },
   {
     key: 'public-wifi',
@@ -80,7 +81,7 @@ const recommendations: Recommendation[] = [
     when: [
       publicWifi
     ],
-    text: 'Im öffentlichen Netzwerken kann potenziell jeder mitlesen. Es ist gesund diese als "feindliche" Umgebung zu betrachten! Falls möglich könntest du dich mit einen VPN verbinden, dieser bietet einen gewissen Schutz vor dem mitlesen.'
+    text: 'In öffentlichen Netzwerken können Dritte unter Umständen Daten mitlesen. Falls möglich, könntest du dich mit einem VPN verbinden, dieses bietet einen gewissen Schutz vor dem Mitlesen.'
   },
   {
     key: 'update',
@@ -89,7 +90,16 @@ const recommendations: Recommendation[] = [
     when: [
       not(updates)
     ],
-    text: 'Regelmäßiges updaten der Geräte führt. Angreifer nutzen oft bereits bekannte Sicherheitslücken aus, die bereits in Updates behoben wurde. Halte daher deine Geräte immer auf den aktuellsten Stand.'
+    text: 'Regelmäßiges Updaten der Geräte führt zu mehr Sicherheit. Angreifer nutzen oft bekannte Sicherheitslücken aus, die bereits in Updates behoben wurden. Halte daher deine Geräte immer auf dem aktuellsten Stand.'
+  },
+  {
+    key: 'block-external-data',
+    severity: 'low',
+    title: 'Externe Inhalte im E-Mail-Client deaktivieren',
+    when: [
+        not(blockExternalData)
+    ],
+    text: 'Dein E-Mail-Client erlaubt derzeit das Laden von externen Inhalten. Wir empfehlen, diese Funktion zu deaktivieren.'
   }
 ]
 
@@ -106,7 +116,7 @@ const matched = computed(() => {
   for (const r of recommendations) {
     if (!r.when.some(fn => fn(survey.value))) continue
     const current = best.get(r.key)
-    if (!current || r.severity > current.severity) best.set(r.key, r)
+    if (!current || severityMap[r.severity] > severityMap[current.severity]) best.set(r.key, r)
   }
   return [...best.values()].sort((a, b) => severityMap[b.severity] - severityMap[a.severity])
 })
@@ -120,7 +130,7 @@ const recommendationSeverityMap: { [key: string]: "error" | "warning" | "info" |
 </script>
 
 <template>
-  <p>Vielen Dank das du bei der Umfrage mitgemacht hast! Nachfolgend findest du eine Auswertung deiner Antworten</p>
+  <p>Vielen Dank, dass du bei der Umfrage mitgemacht hast. Nachfolgend findest du eine Auswertung deiner Antworten.</p>
 
   <div v-if="matched.length" class="mt-5 flex flex-col gap-3">
     <UAlert
@@ -134,7 +144,7 @@ const recommendationSeverityMap: { [key: string]: "error" | "warning" | "info" |
     />
   </div>
   <p v-else class="mt-5">
-    Auf Basis deiner Antworten haben wir keine speziellen Empfehlungen für dich. Weiter so!
+    Auf Basis deiner Antworten haben wir keine speziellen Empfehlungen für dich.
   </p>
 </template>
 

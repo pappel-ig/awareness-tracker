@@ -28,21 +28,21 @@ survey.value.meta.ip = result;
 
 <template>
   <p>
-    Durch den Besuch dieser Umfrage übermittelst du deine IP-Adresse an den Web-Server. Mithilfe dieser lässt sich dein
-    ungefährer Standort sowie dein Internet-Anbieter ermitteln:
+    Durch den Besuch dieser Umfrage übermittelst du deine IP-Adresse an den Webserver. Mithilfe der IP-Adresse lässt sich dein
+    ungefährer Standort und dein Internet-Anbieter ermitteln:
   </p>
 
   <div class="mt-3 flex gap-0.5">
     <UBadge><b>IP:</b> {{ result?.ip || "nicht ermittelbar" }}</UBadge>
-    <UBadge><b>Standort:</b> {{result?.country || "n/a"}}, {{result?.city || "n/a"}}</UBadge>
+    <UBadge><b>Standort:</b> {{ [result?.city, result?.country].filter(Boolean).join(", ") || "nicht ermittelbar" }}</UBadge>
     <UBadge><b>Internet-Anbieter:</b> {{result?.isp || "nicht ermittelbar"}}</UBadge>
   </div>
 
   <USeparator class="mt-5" type="dashed" />
 
-  <SurveyBinaryQuestion class="mt-5" label="Wusstest du das deine IP-Adresse ungefähre Standortdaten sowie dein Internet-Anbieter preisgibt?" v-model="survey.ipKnowledge"/>
+  <SurveyBinaryQuestion class="mt-5" label="Wusstest du, dass deine IP-Adresse deinen ungefähren Standort sowie deinen Internet-Anbieter verrät?" v-model="survey.ipKnowledge"/>
 
-  <SurveyOrdinalQuestion class="mt-5" label="Wie stark beunruhigen dich diese Daten?" v-model="survey.ipScareFactor"/>
+  <SurveyOrdinalQuestion class="mt-5" v-model="survey.ipScareFactor"/>
 
 </template>
 

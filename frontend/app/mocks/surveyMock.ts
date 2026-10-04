@@ -46,5 +46,6 @@ export const surveyMock = {
   fingerprintKnowledge: true,
   fingerprintScareFactor: 2,
   trackingPixelKnowledge: false,
-  trackingPixelScareFactor: 4
+  trackingPixelScareFactor: 4,
+  blockExternalData: false
 }
