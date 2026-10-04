@@ -29,7 +29,15 @@ pub struct SurveySubmitRequest {
     pub ip_scare_factor: Rating,
     pub fingerprint_knowledge: bool,
     pub fingerprint_scare_factor: Rating,
-    pub survey_behavior: SurveyBehavior,
+    pub vpn: bool,
+    pub password_reuse: bool,
+    pub password_change: bool,
+    pub password_manager: bool,
+    pub passkeys: bool,
+    pub two_factor: bool,
+    pub updates: bool,
+    pub public_wifi: bool,
+    pub ad_blocker: bool,
     pub tracking_pixel_knowledge: bool,
     pub tracking_pixel_scare_factor: Rating,
 }
@@ -68,7 +76,7 @@ pub enum AgeGroup {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SurveyMeta {
     pub ip: Option<IpInformation>,
-    pub leak: Option<LeakMeta>,
+    pub leak: Option<Vec<String>>,
     pub tracker: Option<Vec<TrackerMeta>>,
 }
 
@@ -96,20 +104,6 @@ pub struct TrackerMeta {
     pub remote_addr: String,
     pub remote_addr_info: Option<IpInformation>,
     pub headers: Value,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SurveyBehavior {
-    pub vpn: bool,
-    pub password_reuse: bool,
-    pub password_change: bool,
-    pub password_manager: bool,
-    pub passkeys: bool,
-    pub two_factor: bool,
-    pub updates: bool,
-    pub public_wifi: bool,
-    pub ad_blocker: bool,
 }
 
 async fn submit(

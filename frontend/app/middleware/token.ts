@@ -15,7 +15,7 @@ export default defineNuxtRouteMiddleware(async (to, _) => {
             query: { token },
             headers: { "Content-Type": "application/json" },
         })
-        if (response.survey_sent) return navigateTo('/end')
+        if (response.survey_sent) return navigateTo('/completed')
     } catch (err) {
         return navigateTo('/start')
     }

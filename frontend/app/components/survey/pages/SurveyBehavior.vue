@@ -15,9 +15,9 @@ const statements: { key: BehaviorStatement, label: string }[] = [
 ]
 
 const survey = useSurveyState()
-useSurveyPageValidation(v.object({
-  surveyBehavior: v.object(Object.fromEntries(statements.map(s => [s.key, binaryAnswer])))
-}))
+useSurveyPageValidation(v.object(
+    Object.fromEntries(statements.map(s => [s.key, binaryAnswer]))
+))
 </script>
 
 <template>
@@ -33,7 +33,7 @@ useSurveyPageValidation(v.object({
       v-for="statement in statements"
       :key="statement.key"
       :label="statement.label"
-      v-model="survey.surveyBehavior[statement.key]"
+      v-model="survey[statement.key]"
     />
   </div>
 </template>

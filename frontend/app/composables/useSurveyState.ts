@@ -16,7 +16,7 @@ export type BehaviorStatement =
 export type SurveyState = {
   meta: {
     ip: IpResult | null,
-    leak: LeakResult | null,
+    leak: string[] | null,
     tracker: TrackerResult[] | null
   }
   age: string
@@ -28,7 +28,16 @@ export type SurveyState = {
   ipScareFactor: number | null,
   fingerprintKnowledge: boolean | null,
   fingerprintScareFactor: number | null,
-  surveyBehavior: Record<BehaviorStatement, boolean | null>,
+  vpn: boolean | null,
+  passwordReuse: boolean | null,
+  passwordChange: boolean | null,
+  passwordManager: boolean | null,
+  passkeys: boolean | null,
+  twoFactor: boolean | null,
+  updates: boolean | null,
+  publicWifi: boolean | null,
+  adBlocker: boolean | null,
+
   trackingPixelKnowledge: boolean | null,
   trackingPixelScareFactor: number | null
 }
@@ -49,17 +58,15 @@ export function useSurveyState() {
     ipScareFactor: null,
     fingerprintKnowledge: null,
     fingerprintScareFactor: null,
-    surveyBehavior: {
-      vpn: null,
-      passwordReuse: null,
-      passwordChange: null,
-      passwordManager: null,
-      passkeys: null,
-      twoFactor: null,
-      updates: null,
-      publicWifi: null,
-      adBlocker: null,
-    },
+    vpn: null,
+    passwordReuse: null,
+    passwordChange: null,
+    passwordManager: null,
+    passkeys: null,
+    twoFactor: null,
+    updates: null,
+    publicWifi: null,
+    adBlocker: null,
     trackingPixelKnowledge: null,
     trackingPixelScareFactor: null
   }))

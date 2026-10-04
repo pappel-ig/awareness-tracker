@@ -34,7 +34,7 @@ const result = await $fetch<LeakResult>(apiBase + "information/leaks", {
   }
 })
 
-survey.value.meta.leak = result;
+survey.value.meta.leak = [...new Set(result.breaches.flatMap(breach => breach.DataClasses))];
 
 const columns: TableColumn<Breach>[] = [
   {
