@@ -5,7 +5,6 @@ use axum::routing::{get, post};
 use axum::{Extension, Json, Router};
 use serde::Deserialize;
 use serde_json::{json, Value};
-use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use email_address::EmailAddress;
@@ -22,6 +21,7 @@ use crate::Config;
 pub fn router() -> Router {
     Router::new()
         .route("/participants", post(new_participant))
+        .route("/participants/leaks", post(update_leak_status).route_layer(from_fn(require_participant)))
         .route("/participants", get(me).route_layer(from_fn(require_participant)))
 }
 
@@ -89,6 +89,21 @@ async fn new_participant(
     Ok(Json(json!({
         "status": "ok"
     })))
+}
+
+async fn update_leak_status(
+    Extension(db): Extension<Arc<Client>>,
+    Extension(participant): Extension<Participant>
+) -> Result<StatusCode, StatusCode> {
+    db
+        .execute(
+            "UPDATE participants SET leak_check = true WHERE id = $1",
+            &[&participant.id],
+        )
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(StatusCode::ACCEPTED)
 }
 
 async fn me(
