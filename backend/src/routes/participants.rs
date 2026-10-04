@@ -22,7 +22,7 @@ use crate::Config;
 pub fn router() -> Router {
     Router::new()
         .route("/participants", post(new_participant))
-        .route("/participants/me", get(me).route_layer(from_fn(require_participant)))
+        .route("/participants", get(me).route_layer(from_fn(require_participant)))
 }
 
 #[derive(Deserialize)]
@@ -91,8 +91,22 @@ async fn new_participant(
     })))
 }
 
-async fn me(Extension(participant): Extension<Participant>) -> Json<Value> {
-    Json(json!({
-        "id": participant.id,
-    }))
+async fn me(
+    Extension(db): Extension<Arc<Client>>,
+    Extension(participant): Extension<Participant>
+) -> Result<Json<Value>, StatusCode> {
+
+    let row = db.query_one(
+        "SELECT survey_sent FROM participants WHERE id = $1",
+        &[&participant.id]
+    ).await
+        .map_err(|e| {
+            warn!("Failed to insert participant: {}", e.as_db_error().expect("db error:"));
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    let survey_sent: bool = row.get("survey_sent");
+    Ok(Json(json!({
+        "survey_sent": survey_sent,
+    })))
 }

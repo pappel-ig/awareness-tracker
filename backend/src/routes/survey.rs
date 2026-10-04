@@ -1,4 +1,4 @@
-use crate::auth::{require_participant};
+use crate::auth::{require_participant, Participant};
 use crate::ip::IpInformation;
 use axum::http::StatusCode;
 use axum::middleware::from_fn;
@@ -114,6 +114,7 @@ pub struct SurveyBehavior {
 
 async fn submit(
     Extension(db): Extension<Arc<Client>>,
+    Extension(participant): Extension<Participant>,
     Json(body): Json<SurveySubmitRequest>,
 ) -> Result<Json<Value>, StatusCode> {
     let uuid = Uuid::new_v4();
@@ -124,6 +125,15 @@ async fn submit(
         .map_err(|e| {
             error!("Failed to insert survey: {}", e.as_db_error().expect("db error:"));
             StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    db.execute(
+        "UPDATE participants SET survey_sent = true WHERE id = $1",
+        &[&participant.id],
+    ).await
+        .map_err(|e| {
+            error!("Failed to update survey status: {}", e.as_db_error().expect("db error:"));
+            StatusCode::OK
         })?;
 
     Ok(Json(json!({ "status": "ok"})))

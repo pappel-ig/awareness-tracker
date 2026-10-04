@@ -6,8 +6,6 @@ useSurveyPageValidation(v.object({ ipKnowledge: binaryAnswer, ipScareFactor: ord
 const apiBase = useApiBase()
 const route = useRoute()
 
-const token = route.query.token
-
 export interface IpResult {
   city: string | null
   country: string | null
@@ -17,6 +15,7 @@ export interface IpResult {
   ip: string | null
 }
 
+const token = route.query.token
 const result = await $fetch<IpResult>('information/ip', {
   baseURL: apiBase,
   method: 'GET',

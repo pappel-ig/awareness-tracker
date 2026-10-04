@@ -38,12 +38,11 @@ pub async fn connect(database_url: &str) -> Result<Client> {
                     leak_breaches JSONB,
                     invite_sent BOOLEAN NOT NULL,
                     registered_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-                    survey_submitted BOOLEAN NOT NULL DEFAULT false
+                    survey_sent BOOLEAN NOT NULL DEFAULT false
                 );
 
                 CREATE TABLE IF NOT EXISTS surveys (
                     id UUID PRIMARY KEY,
-                    filled_in TIMESTAMPTZ NOT NULL DEFAULT now(),
                     data JSONB NOT NULL
                 );
             "

@@ -24,10 +24,6 @@ export interface Breach {
   Name: string
 }
 
-if (!route.query.token) {
-  router.replace({ path: '/start' })
-}
-
 const result = await $fetch<LeakResult>(apiBase + "information/leaks", {
   method: "GET",
   query: {

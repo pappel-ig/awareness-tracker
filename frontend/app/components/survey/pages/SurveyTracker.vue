@@ -22,10 +22,6 @@ export interface TrackerResult {
   }
 }
 
-if (!route.query.token) {
-  router.replace({ path: '/start' })
-}
-
 const result = await $fetch<TrackerResult[]>(apiBase + "information/tracks", {
   method: "GET",
   query: {
