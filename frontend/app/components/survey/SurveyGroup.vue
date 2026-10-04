@@ -27,27 +27,6 @@ const surveyGroup = [
 const currentIndex = ref(0);
 const pageValid = provideSurveyPageValid()
 
-if (!route.query.token) {
-  router.replace({ path: '/start' })
-}
-
-interface MeResponse {
-  survey_sent: boolean;
-}
-
-const token = route.query.token
-
-$fetch<MeResponse>("participants", {
-  baseURL: apiBase,
-  method: "GET",
-  query: { token },
-  headers: { "Content-Type": "application/json" },
-}).then(value => {
-  if (value.survey_sent) router.replace({ name: 'end' })
-}).catch(() => {
-  router.replace({ path: '/start' })
-})
-
 function handleNext() {
   if (hasNext() && pageValid.value) {
     currentIndex.value++
