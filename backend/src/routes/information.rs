@@ -34,10 +34,14 @@ async fn leak_status(
     let leak_check: Option<bool> = row.get("leak_check");
     let leak_breaches: Option<Value> = row.get("leak_breaches");
 
-    Ok(Json(json!({
+    let mut json = json!({
         "leak_check": leak_check.unwrap_or(false),
-        "breaches": leak_breaches.unwrap_or_else(|| json!([])),
-    })))
+    });
+
+    if let Some(breaches) = leak_breaches {
+        json["breaches"] = breaches;
+    }
+    Ok(Json(json))
 }
 
 async fn tracks(

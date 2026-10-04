@@ -13,7 +13,7 @@ const banner = useBanner()
 const token = route.query.token
 
 export interface LeakResult {
-  breaches: Breach[] | null
+  breaches?: Breach[] | null
   leak_check: boolean
 }
 
@@ -93,18 +93,36 @@ async function updateLeakStatus() {
       }
     })
 
-    for (let attempt = 0; attempt < 30; attempt++) {
-      await sleep(1000)
-      if (unmounted) return
-      result.value = await fetchLeaks()
-      if (result.value.breaches != null) return
-    }
+    await pollLeaks()
   } catch (error) {
     banner.value = { color: "error", title: "Die HaveIBeenPwned-Daten konnten leider nicht abgerufen werden."}
   } finally {
     polling.value = false
   }
 }
+
+async function pollLeaks() {
+  for (let attempt = 0; attempt < 30; attempt++) {
+    await sleep(1000)
+    if (unmounted) return
+    result.value = await fetchLeaks()
+    if (result.value.breaches != null) return
+  }
+}
+
+watch(status, async (value) => {
+  if (value !== 'success' || polling.value) return
+  if (result.value?.leak_check && result.value.breaches == null) {
+    polling.value = true
+    try {
+      await pollLeaks()
+    } catch (error) {
+      banner.value = { color: "error", title: "Die HaveIBeenPwned-Daten konnten leider nicht abgerufen werden."}
+    } finally {
+      polling.value = false
+    }
+  }
+}, { immediate: true })
 
 const showAllBreaches = ref(false)
 const visibleBreaches = computed(() =>
