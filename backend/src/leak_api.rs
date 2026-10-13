@@ -86,11 +86,11 @@ async fn check_email(client: &Client, email: &str) -> Result<Vec<Breach>, CheckE
     }
 }
 
-pub async fn run_worker(db: Arc<DbClient>, client: Arc<Client>, mailer: EmailTemplateService, config: Config) {
+pub async fn run_worker(db: Arc<DbClient>, client: Arc<Client>, mailer: EmailTemplateService) {
     let mut backoff = POLL_INTERVAL;
 
     loop {
-        send_pending_invites(&db, &mailer, &config).await;
+        send_pending_invites(&db, &mailer).await;
 
         let pending = db
             .query_opt(
@@ -145,7 +145,7 @@ pub async fn run_worker(db: Arc<DbClient>, client: Arc<Client>, mailer: EmailTem
     }
 }
 
-async fn send_pending_invites(db: &DbClient, mailer: &EmailTemplateService, config: &Config) {
+async fn send_pending_invites(db: &DbClient, mailer: &EmailTemplateService) {
     let rows = match db
         .query(
             "SELECT id, email FROM participants
@@ -177,8 +177,7 @@ async fn send_pending_invites(db: &DbClient, mailer: &EmailTemplateService, conf
         }
 
         let mailer = mailer.clone();
-        let config = config.clone();
-        let sent = tokio::task::spawn_blocking(move || mailer.send_invite(&config, &email, &token)).await;
+        let sent = tokio::task::spawn_blocking(move || mailer.send_invite(&email, &token)).await;
 
         match sent {
             Ok(Ok(())) => {

@@ -14,15 +14,15 @@ pub struct EmailTemplateService {
     mailer: SmtpTransport,
     from_name: String,
     from_email: String,
+    origin: String
 }
 
 impl EmailTemplateService {
 
-    pub fn send_invite(&self, config: &Config, to_mail: &str, token: &str) -> Result<()> {
+    pub fn send_invite(&self, to_mail: &str, token: &str) -> Result<()> {
         let mut vals = HashMap::new();
-        vals.insert("survey", format!("https://{}/survey?token={}", config.frontend_addr, token));
-        vals.insert("bind", config.addr.clone());
-        vals.insert("token", token.to_string());
+        vals.insert("survey", format!("{}/survey?token={}", self.origin, token));
+        vals.insert("tracker", format!("{}/api/mail/tracker?token={}", self.origin, token));
 
         self.send_template(
             "templates/invite.html",
@@ -51,6 +51,7 @@ impl EmailTemplateService {
         let from_name = env::var("SMTP_NAME").unwrap_or_else(|_| "Example".to_string());
         let from_email = env::var("SMTP_FROM").unwrap_or_else(|_| "test@example.org".to_string());
         let smtp_accept_invalid_certs = env::var("DEBUG").is_ok();
+        let origin = env::var("ORIGIN").unwrap_or_else(|_| "http://localhost:3000".to_string());
         
         let credentials = Credentials::new(smtp_username, smtp_password);
         let mut builder = SmtpTransport::starttls_relay(&smtp_server)
@@ -72,6 +73,7 @@ impl EmailTemplateService {
             mailer,
             from_name,
             from_email,
+            origin
         })
     }
 

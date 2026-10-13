@@ -36,7 +36,6 @@ async fn new_participant(
     Extension(db): Extension<Arc<Client>>,
     Extension(turnstile): Extension<Arc<TurnstileClient>>,
     Extension(mailer): Extension<EmailTemplateService>,
-    Extension(config): Extension<Config>,
     connect_info: Option<Extension<ConnectInfo<SocketAddr>>>,
     Json(body): Json<NewParticipantRequest>,
 ) -> Result<Json<Value>, StatusCode> {
@@ -76,7 +75,7 @@ async fn new_participant(
         tokio::spawn(async move {
             let result = tokio::task::spawn_blocking(move || {
                 mailer
-                    .send_invite(&config, &email, &token)
+                    .send_invite(&email, &token)
                     .map_err(|e| format!("{e:#}"))
             })
                 .await;

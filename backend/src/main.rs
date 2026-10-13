@@ -43,8 +43,6 @@ async fn main() -> Result<()> {
         .map_err(|_| anyhow::anyhow!("Crypto-Provider konnte nicht installiert werden"))?;
 
     let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
-    let addr = env::var("ADDR").unwrap_or_else(|_| "localhost:8080".to_string());
-    let frontend_addr = env::var("FRONTEND_ADDR").unwrap_or_else(|_| "localhost:3000".to_string());
     let cors = env::var("CORS").unwrap_or_else(|_| "http://localhost:3000".to_string());
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://tracker:tracker@127.0.0.1:5432/tracker".to_string());
     let server_config = Arc::new(tls::load_server_config()?);
@@ -53,8 +51,7 @@ async fn main() -> Result<()> {
     let leak_client = leak_api::build_client()?;
     let turnstile_client = Arc::new(turnstile::TurnstileClient::new()?);
     let email_template_service = EmailTemplateService::new()?;
-    let config = Config { addr, frontend_addr };
-    tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone(), email_template_service.clone(), config.clone()));
+    tokio::spawn(leak_api::run_worker(db.clone(), leak_client.clone(), email_template_service.clone()));
 
     info!("Start Backend on {}", bind_addr);
 
@@ -65,7 +62,6 @@ async fn main() -> Result<()> {
 
     let app = router()
         .layer(cors)
-        .layer(Extension(config))
         .layer(Extension(db))
         .layer(Extension(leak_client))
         .layer(Extension(turnstile_client))
