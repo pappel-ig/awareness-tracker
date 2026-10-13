@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::env;
 use anyhow::{bail, Context, Result};
 use lettre::{Message, SmtpTransport, Transport};
-use lettre::message::header::ContentType;
+use lettre::message::Body;
+use lettre::message::header::{ContentTransferEncoding, ContentType};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::client::{Tls, TlsParameters};
 use crate::Config;
@@ -83,7 +84,8 @@ impl EmailTemplateService {
             .to(to_mail.parse().context("Ungültige Empfänger-Adresse")?)
             .subject(subject)
             .header(ContentType::TEXT_HTML)
-            .body(Self::render_template(template, &vals))
+            .body(Body::new_with_encoding(Self::render_template(template, &vals), ContentTransferEncoding::Base64)
+                .map_err(|_| anyhow::anyhow!("E-Mail-Body konnte nicht kodiert werden"))?)
             .context("E-Mail konnte nicht erstellt werden")?;
 
         self.mailer.send(&email).context("E-Mail-Versand fehlgeschlagen")?;
