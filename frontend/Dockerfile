@@ -8,6 +8,7 @@ RUN pnpm generate
 
 FROM nginx:stable-alpine as runtime
 COPY --from=build /app/.output/public /usr/share/nginx/html/
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 EXPOSE 80

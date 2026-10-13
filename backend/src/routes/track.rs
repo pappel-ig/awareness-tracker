@@ -19,7 +19,6 @@ use tokio_postgres::Client;
 use uuid::Uuid;
 
 use crate::auth::{Participant, require_participant};
-use crate::tls::ClientHelloInfo;
 
 const PIXEL_GIF: &[u8] = &[
     0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -36,20 +35,18 @@ pub fn router() -> Router {
 async fn tracker_browser(
     method: Method,
     headers: HeaderMap,
-    Extension(tls_info): Extension<Arc<ClientHelloInfo>>,
     Extension(ConnectInfo(remote_addr)): Extension<ConnectInfo<SocketAddr>>,
     Extension(db): Extension<Arc<Client>>,
     Extension(participant): Extension<Participant>,
 ) -> Result<Json<Value>, StatusCode> {
     let headers = extract_headers(headers);
-    let tls = serde_json::to_value(&*tls_info).unwrap();
     let headers = serde_json::to_value(&headers).unwrap();
     let remote_addr = remote_addr.ip().to_string();
     let method = method.as_str();
 
     db.execute(
-        "INSERT INTO tracks (id, participant, method, origin, remote_addr, tls, headers) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        &[&Uuid::new_v4(), &participant.id, &method, &"browser", &remote_addr, &tls, &headers],
+        "INSERT INTO tracks (id, participant, method, origin, remote_addr, headers) VALUES ($1, $2, $3, $4, $5, $6)",
+        &[&Uuid::new_v4(), &participant.id, &method, &"browser", &remote_addr, &headers],
     ).await
         .map_err(|e| {
             error!("Unable to insert track data: {}", e.as_db_error().expect("db error"));
@@ -75,20 +72,18 @@ fn extract_headers(headers: HeaderMap) -> BTreeMap<String, String> {
 async fn tracker_pixel(
         method: Method,
         headers: HeaderMap,
-        Extension(tls_info): Extension<Arc<ClientHelloInfo>>,
         Extension(ConnectInfo(remote_addr)): Extension<ConnectInfo<SocketAddr>>,
         Extension(db): Extension<Arc<Client>>,
         Extension(participant): Extension<Participant>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let headers = extract_headers(headers);
-    let tls = serde_json::to_value(&*tls_info).unwrap();
     let headers = serde_json::to_value(&headers).unwrap();
     let remote_addr = remote_addr.ip().to_string();
     let method = method.as_str();
 
     db.execute(
-        "INSERT INTO tracks (id, participant, method, origin, remote_addr, tls, headers) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        &[&Uuid::new_v4(), &participant.id, &method, &"mail", &remote_addr, &tls, &headers],
+        "INSERT INTO tracks (id, participant, method, origin, remote_addr, headers) VALUES ($1, $2, $3, $4, $5, $6)",
+        &[&Uuid::new_v4(), &participant.id, &method, &"mail", &remote_addr, &headers],
     ).await
         .map_err(|e| {
             error!("Unable to insert track data: {}", e.as_db_error().expect("db error"));

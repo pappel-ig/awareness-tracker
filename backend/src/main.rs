@@ -8,24 +8,17 @@ mod turnstile;
 mod ip;
 
 use std::env;
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use axum::body::Body;
-use axum::extract::ConnectInfo;
 use axum::Extension;
-use axum::http::Method;
+use axum::middleware::from_fn;
+use axum_server::tls_rustls::RustlsConfig;
 use dotenvy::dotenv;
-use hyper::header::ACCESS_CONTROL_ALLOW_METHODS;
 use hyper::http::HeaderValue;
-use hyper_util::rt::{TokioExecutor, TokioIo};
-use hyper_util::server::conn::auto::Builder;
-use hyper_util::service::TowerToHyperService;
-use tokio::net::TcpListener;
-use tower::Service;
 use log::{info, warn};
 use tower_http::cors::{Any, CorsLayer};
-use tower_http::set_header::SetResponseHeaderLayer;
 use ip::IpInformationService;
 use crate::mail::EmailTemplateService;
 use crate::routes::router;
@@ -49,8 +42,8 @@ async fn main() -> Result<()> {
         .install_default()
         .map_err(|_| anyhow::anyhow!("Crypto-Provider konnte nicht installiert werden"))?;
 
-    let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8443".to_string());
-    let addr = env::var("ADDR").unwrap_or_else(|_| "localhost:8443".to_string());
+    let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
+    let addr = env::var("ADDR").unwrap_or_else(|_| "localhost:8080".to_string());
     let frontend_addr = env::var("FRONTEND_ADDR").unwrap_or_else(|_| "localhost:3000".to_string());
     let cors = env::var("CORS").unwrap_or_else(|_| "http://localhost:3000".to_string());
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://tracker:tracker@127.0.0.1:5432/tracker".to_string());
@@ -70,7 +63,6 @@ async fn main() -> Result<()> {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    let listener = TcpListener::bind(&bind_addr).await?;
     let app = router()
         .layer(cors)
         .layer(Extension(config))
@@ -78,7 +70,8 @@ async fn main() -> Result<()> {
         .layer(Extension(leak_client))
         .layer(Extension(turnstile_client))
         .layer(Extension(email_template_service))
-        .layer(Extension(Arc::new(ip_information_client)));
+        .layer(Extension(Arc::new(ip_information_client)))
+        .layer(from_fn(ip::real_ip));
 
     tokio::spawn(async {
         shutdown_signal().await;
@@ -88,33 +81,12 @@ async fn main() -> Result<()> {
 
     info!("Started Backend on {}", bind_addr);
 
-    loop {
-        let Ok((tcp_stream, peer_addr)) = listener.accept().await else {
-            continue;
-        };
-        let server_config = server_config.clone();
-        let app = app.clone();
+    axum_server::bind_rustls(bind_addr.parse::<SocketAddr>()?, RustlsConfig::from_config(server_config))
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+        .await
+        .context("Serve failed")?;
 
-        tokio::spawn(async move {
-            let Ok((tls_stream, hello_info)) = tls::accept_tls(tcp_stream, server_config).await
-            else {
-                return;
-            };
-
-            let mut app = app
-                .layer(Extension(Arc::new(hello_info)))
-                .layer(Extension(ConnectInfo(peer_addr)));
-            let hyper_service = TowerToHyperService::new(tower::service_fn(
-                move |request: hyper::Request<hyper::body::Incoming>| {
-                    app.call(request.map(Body::new))
-                },
-            ));
-
-            let _ = Builder::new(TokioExecutor::new())
-                .serve_connection(TokioIo::new(tls_stream), hyper_service)
-                .await;
-        });
-    }
+    Ok(())
 }
 
 #[cfg(unix)]

@@ -26,7 +26,6 @@ pub async fn connect(database_url: &str) -> Result<Client> {
                     method TEXT NOT NULL,
                     origin TEXT NOT NULL,
                     remote_addr TEXT NOT NULL,
-                    tls JSONB NOT NULL,
                     headers JSONB NOT NULL
                 );
 

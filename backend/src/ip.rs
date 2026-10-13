@@ -1,7 +1,10 @@
 use std::env;
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 
 use anyhow::{Context, Result};
+use axum::extract::{ConnectInfo, Request};
+use axum::middleware::Next;
+use axum::response::Response;
 use maxminddb::{geoip2, Reader};
 use serde::{Deserialize, Serialize};
 
@@ -66,4 +69,17 @@ impl IpInformationService {
             ip
         }
     }
+}
+
+pub async fn real_ip(mut req: Request, next: Next) -> Response {
+    let ip = req
+        .headers()
+        .get("x-real-ip")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.parse::<IpAddr>().ok());
+    let addr = req.extensions().get::<ConnectInfo<SocketAddr>>().map(|c| c.0);
+    if let (Some(ip), Some(addr)) = (ip, addr) {
+        req.extensions_mut().insert(ConnectInfo(SocketAddr::new(ip, addr.port())));
+    }
+    next.run(req).await
 }

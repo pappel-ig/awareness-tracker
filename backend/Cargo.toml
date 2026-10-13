@@ -11,7 +11,6 @@ axum = "0.8.9"
 rustls = "0.23.43"
 serde = { version = "1.0.229", features = ["derive"] }
 tokio = { version = "1.53.1", features = ["full"] }
-tokio-rustls = "0.26.4"
 hyper = { version = "1.11.0", features = ["server", "http1"] }
 hyper-util = { version = "0.1.20", features = ["tokio", "server", "server-auto", "service"] }
 tower = "0.5.3"
@@ -31,3 +30,4 @@ base64 = "0.22.1"
 maxminddb = "0.30.3"
 time = { version = "0.3.55", features = ["serde", "parsing", "formatting", "macros"] }
 chrono = "0.4.45"
+axum-server = { version = "0.8.0", features = ["tls-rustls"] }
